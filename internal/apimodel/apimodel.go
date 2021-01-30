@@ -39,6 +39,11 @@ var Descriptors = []Descriptor{{
 	Response: datamodel.PsiphonConfigResponse{},
 }, {
 	Method:   "POST",
+	URLPath:  "/api/v1/register",
+	Request:  datamodel.RegisterRequest{},
+	Response: datamodel.RegisterResponse{},
+}, {
+	Method:   "POST",
 	URLPath:  "/report",
 	Request:  datamodel.OpenReportRequest{},
 	Response: datamodel.OpenReportResponse{},
