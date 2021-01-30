@@ -5,6 +5,7 @@ import "net/http"
 
 // Client is a client for the OONI API.
 type Client struct {
+	Accept        string
 	Authorization string
 	BaseURL       string
 	HTTPClient    *http.Client

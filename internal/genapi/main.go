@@ -42,6 +42,13 @@ func gencall(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif c.Accept != \"\" {\n")
+	fmtx.Fprint(filep, "\t\treq.Header.Add(\"Accept\", c.Accept)\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif c.Authorization != \"\" {\n")
+	fmtx.Fprint(filep, "\t\treq.Header.Add(\"Authorization\", c.Authorization)\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\treq.Header.Add(\"User-Agent\", c.UserAgent)\n")
 	fmtx.Fprintf(filep, "\treturn new%s(c.HTTPClient.Do(req))\n", resp)
 }
 

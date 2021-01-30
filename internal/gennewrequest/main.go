@@ -117,14 +117,19 @@ func gencreaterequest(filep osx.File, desc *apimodel.Descriptor) {
 		fmtx.Fprint(filep, "\tif err != nil {\n")
 		fmtx.Fprint(filep, "\t\treturn nil, err\n")
 		fmtx.Fprint(filep, "\t}\n")
+		fmtx.Fprint(filep, "\tout, err := http.NewRequestWithContext(")
+		fmtx.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
+		fmtx.Fprint(filep, "bytes.NewReader(body))\n")
+		fmtx.Fprint(filep, "\tif err != nil {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, err\n")
+		fmtx.Fprint(filep, "\t}\n")
+		fmtx.Fprint(filep, "\tout.Header.Set(\"Content-Type\", \"application/json\")\n")
+		fmtx.Fprint(filep, "\treturn out, nil\n")
+		return
 	}
 	fmtx.Fprint(filep, "\treturn http.NewRequestWithContext(")
 	fmtx.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
-	if desc.Method != "POST" {
-		fmtx.Fprint(filep, "nil)\n")
-		return
-	}
-	fmtx.Fprint(filep, "bytes.NewReader(body))\n")
+	fmtx.Fprint(filep, "nil)\n")
 }
 
 func genmakeurl(filep osx.File, desc *apimodel.Descriptor) {
