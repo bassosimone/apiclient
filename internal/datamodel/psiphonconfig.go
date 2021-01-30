@@ -11,17 +11,4 @@ type PsiphonConfigRemoteServerListURL struct {
 }
 
 // PsiphonConfigResponse is the response from the PsiphonConfig API
-type PsiphonConfigResponse struct {
-	ClientPlatform                     string
-	ClientVersion                      int64
-	PropagationChannelId               string
-	SponsorId                          string
-	RemoteServerListURLs               []PsiphonConfigRemoteServerListURL
-	RemoteServerListDownloadFilename   string
-	RemoteServerListSignaturePublicKey string
-	TargetApiProtocol                  string
-	EstablishTunnelTimeoutSeconds      int64
-	LocalHttpProxyPort                 int64
-	LocalSocksProxyPort                int64
-	UseIndistinguishableTLS            bool
-}
+type PsiphonConfigResponse map[string]interface{}

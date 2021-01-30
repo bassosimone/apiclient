@@ -14,15 +14,17 @@ import (
 )
 
 func gettype(in interface{}) string {
-	sinfo, err := reflectx.NewStructInfo(in)
+	sinfo, err := reflectx.NewTypeValueInfo(in)
 	fatalx.OnError(err, "reflectx.NewStructInfo failed")
 	return sinfo.TypeName()
 }
 
 func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
-	sinfo, err := reflectx.NewStructInfo(in)
+	sinfo, err := reflectx.NewTypeValueInfo(in)
 	fatalx.OnError(err, "reflectx.NewStructInfo failed")
-	return sinfo.AllFieldsWithTag(tagName)
+	finfo, err := sinfo.AllFieldsWithTag(tagName)
+	fatalx.OnError(err, "sinfo.AllFieldsWithTag failed")
+	return finfo
 }
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {

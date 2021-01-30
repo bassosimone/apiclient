@@ -11,6 +11,8 @@ type Descriptor struct {
 	Response interface{}
 }
 
+// TODO(bassosimone): sort the list below by API
+
 // Descriptors contains all descriptors.
 var Descriptors = []Descriptor{{
 	Method:   "GET",
@@ -37,6 +39,11 @@ var Descriptors = []Descriptor{{
 	URLPath:  "/api/v1/test-list/psiphon-config",
 	Request:  datamodel.PsiphonConfigRequest{},
 	Response: datamodel.PsiphonConfigResponse{},
+}, {
+	Method:   "GET",
+	URLPath:  "/api/v1/test-list/tor-targets",
+	Request:  datamodel.TorTargetsRequest{},
+	Response: datamodel.TorTargetsResponse{},
 }, {
 	Method:   "POST",
 	URLPath:  "/api/v1/register",

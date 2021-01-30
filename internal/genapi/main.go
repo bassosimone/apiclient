@@ -13,7 +13,7 @@ import (
 )
 
 func gettype(in interface{}) string {
-	sinfo, err := reflectx.NewStructInfo(in)
+	sinfo, err := reflectx.NewTypeValueInfo(in)
 	fatalx.OnError(err, "reflectx.NewStructInfo failed")
 	return sinfo.TypeName()
 }

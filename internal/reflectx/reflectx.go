@@ -12,14 +12,14 @@ var (
 	ErrNotStruct  = errors.New("reflectx: not a struct")
 )
 
-// StructInfo contains info about a struct
-type StructInfo struct {
+// TypeValueInfo contains info about a type
+type TypeValueInfo struct {
 	typeInfo  reflect.Type
 	valueInfo *reflect.Value
 }
 
-// NewStructInfo creates a new StructInfo
-func NewStructInfo(in interface{}) (*StructInfo, error) {
+// NewTypeValueInfo creates a new TypeValueInfo
+func NewTypeValueInfo(in interface{}) (*TypeValueInfo, error) {
 	valueInfo := reflect.ValueOf(in)
 	if valueInfo.Kind() == reflect.Ptr {
 		valueInfo = valueInfo.Elem()
@@ -28,14 +28,11 @@ func NewStructInfo(in interface{}) (*StructInfo, error) {
 		}
 	}
 	typeInfo := valueInfo.Type()
-	if typeInfo.Kind() != reflect.Struct {
-		return nil, ErrNotStruct
-	}
-	return &StructInfo{typeInfo: typeInfo, valueInfo: &valueInfo}, nil
+	return &TypeValueInfo{typeInfo: typeInfo, valueInfo: &valueInfo}, nil
 }
 
 // TypeName returns the name of the struct type.
-func (si StructInfo) TypeName() string {
+func (si TypeValueInfo) TypeName() string {
 	return si.typeInfo.Name()
 }
 
@@ -46,7 +43,10 @@ type FieldInfo struct {
 }
 
 // AllFieldsWithTag returns all fields with a given tag name.
-func (si StructInfo) AllFieldsWithTag(tagName string) []*FieldInfo {
+func (si TypeValueInfo) AllFieldsWithTag(tagName string) ([]*FieldInfo, error) {
+	if si.typeInfo.Kind() != reflect.Struct {
+		return nil, ErrNotStruct
+	}
 	var out []*FieldInfo
 	for idx := 0; idx < si.typeInfo.NumField(); idx++ {
 		fieldType := si.typeInfo.Field(idx)
@@ -56,5 +56,5 @@ func (si StructInfo) AllFieldsWithTag(tagName string) []*FieldInfo {
 		fieldValue := si.valueInfo.Field(idx)
 		out = append(out, &FieldInfo{Self: &fieldType, Value: &fieldValue})
 	}
-	return out
+	return out, nil
 }
