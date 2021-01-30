@@ -33,6 +33,11 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.MeasurementMetaRequest{},
 	Response: datamodel.MeasurementMetaResponse{},
 }, {
+	Method:   "GET",
+	URLPath:  "/api/v1/test-list/psiphon-config",
+	Request:  datamodel.PsiphonConfigRequest{},
+	Response: datamodel.PsiphonConfigResponse{},
+}, {
 	Method:   "POST",
 	URLPath:  "/report",
 	Request:  datamodel.OpenReportRequest{},
