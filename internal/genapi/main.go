@@ -64,6 +64,8 @@ func main() {
 	fmtx.Fprint(filep, "package apiclient\n\n")
 	fmtx.Fprint(filep, "import \"context\"\n\n")
 
+	fmtx.Fprint(filep, "//go:generate go run ./internal/genapi/...\n\n")
+
 	for _, descr := range apimodel.Descriptors {
 		genapi(filep, &descr)
 	}

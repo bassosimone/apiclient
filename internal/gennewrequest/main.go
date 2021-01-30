@@ -84,7 +84,7 @@ func genqueryforint64(filep osx.File, field *reflectx.FieldInfo) {
 	query := field.Self.Tag.Get("query")
 	// mandatory does not make much sense for an integer field
 	fmtx.Fprintf(filep, "\tif req.%s != 0 {\n", name)
-	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", fmtx.Sprintf(\"%%d\", req.%s))\n", query, name)
+	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", fmt.Sprintf(\"%%d\", req.%s))\n", query, name)
 	fmtx.Fprintf(filep, "\t}\n")
 }
 
@@ -166,6 +166,8 @@ func main() {
 	fmtx.Fprint(filep, "\t\"net/url\"\n")
 	fmtx.Fprint(filep, "\t\"strings\"\n")
 	fmtx.Fprint(filep, ")\n\n")
+
+	fmtx.Fprint(filep, "//go:generate go run ./internal/gennewrequest/...\n\n")
 
 	for _, descr := range apimodel.Descriptors {
 		genapi(filep, &descr)
