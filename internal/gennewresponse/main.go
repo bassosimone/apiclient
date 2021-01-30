@@ -23,7 +23,7 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tif resp.StatusCode != 200 {\n")
-	fmtx.Fprint(filep, "\t\treturn nil, errors.New(\"apiclient: http request failed\")\n")
+	fmtx.Fprint(filep, "\t\treturn nil, fmt.Errorf(\"%w: %d\", ErrHTTPFailure, resp.StatusCode)\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tdefer resp.Body.Close()\n")
 	fmtx.Fprint(filep, "\treader := io.LimitReader(resp.Body, 4<<20)\n")
@@ -39,7 +39,7 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	// https://play.golang.org/p/6h-v-PShMk9.
 	if typevalueinfo.CanBeNil() {
 		fmtx.Fprint(filep, "\tif out == nil {\n")
-		fmtx.Fprint(filep, "\t\treturn nil, errors.New(\"apiclient: server returned us a literal null\")\n")
+		fmtx.Fprint(filep, "\t\treturn nil, ErrJSONLiteralNull\n")
 		fmtx.Fprint(filep, "\t}\n")
 	}
 	fmtx.Fprintf(filep, "\treturn %s, nil\n", typevalueinfo.AsReturnValue("out"))
@@ -64,7 +64,7 @@ func main() {
 	fmtx.Fprint(filep, "package apiclient\n\n")
 	fmtx.Fprint(filep, "import (\n")
 	fmtx.Fprint(filep, "\t\"encoding/json\"\n")
-	fmtx.Fprint(filep, "\t\"errors\"\n")
+	fmtx.Fprint(filep, "\t\"fmt\"\n")
 	fmtx.Fprint(filep, "\t\"io/ioutil\"\n")
 	fmtx.Fprint(filep, "\t\"io\"\n")
 	fmtx.Fprint(filep, "\t\"net/http\"\n")

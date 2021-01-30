@@ -52,8 +52,8 @@ func genqueryforstring(filep osx.File, field *reflectx.FieldInfo) {
 	query := field.Self.Tag.Get("query")
 	if field.Self.Tag.Get("mandatory") == "true" {
 		fmtx.Fprintf(filep, "\tif req.%s == \"\" {\n", name)
-		fmtx.Fprint(filep, "\t\treturn nil, errors.New(")
-		fmtx.Fprintf(filep, "\"apiclient: empty %s field\")\n", name)
+		fmtx.Fprint(filep, "\t\treturn nil, fmt.Errorf(")
+		fmtx.Fprintf(filep, "\"%%w: %s\", ErrEmptyField)\n", name)
 		fmtx.Fprintf(filep, "\t}\n")
 		fmtx.Fprintf(filep, "\tquery.Add(\"%s\", ", query)
 		fmtx.Fprintf(filep, "req.%s)\n", name)
@@ -159,7 +159,6 @@ func main() {
 	fmtx.Fprint(filep, "\t\"bytes\"\n")
 	fmtx.Fprint(filep, "\t\"context\"\n")
 	fmtx.Fprint(filep, "\t\"encoding/json\"\n")
-	fmtx.Fprint(filep, "\t\"errors\"\n")
 	fmtx.Fprint(filep, "\t\"fmt\"\n")
 	fmtx.Fprint(filep, "\t\"text/template\"\n")
 	fmtx.Fprint(filep, "\t\"net/http\"\n")
