@@ -4,11 +4,7 @@ package datamodel
 type TestHelpersRequest struct{}
 
 // TestHelpersResponse is the TestHelpers response.
-type TestHelpersResponse struct {
-	HTTPReturnJSONHeaders []TestHelpersHelperInfo `json:"http-return-json-headers"`
-	TCPEcho               []TestHelpersHelperInfo `json:"tcp-echo"`
-	WebConnectivity       []TestHelpersHelperInfo `json:"web-connectivity"`
-}
+type TestHelpersResponse map[string][]TestHelpersHelperInfo
 
 // TestHelpersHelperInfo is a single helper within the
 // response returned by the TestHelpers API.
