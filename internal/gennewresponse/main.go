@@ -16,12 +16,6 @@ func gettype(in interface{}) string {
 	return sinfo.TypeName()
 }
 
-func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
-	sinfo, err := reflectx.NewStructInfo(in)
-	fatalx.OnError(err, "reflectx.NewStructInfo failed")
-	return sinfo.AllFieldsWithTag(tagName)
-}
-
 func genbeginfunc(filep *os.File, desc *apimodel.Descriptor) {
 	typename := gettype(desc.Response)
 	fmt.Fprintf(filep, "// New%s creates a new %s\n", typename, typename)
