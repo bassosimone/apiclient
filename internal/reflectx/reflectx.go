@@ -68,18 +68,6 @@ func (si TypeValueInfo) AllFieldsWithTag(tagName string) ([]*FieldInfo, error) {
 	return out, nil
 }
 
-// AsInitialization generates an initialization for the named variable
-func (si TypeValueInfo) AsInitialization(name string) string {
-	switch si.typeInfo.Kind() {
-	case reflect.Struct:
-		return fmt.Sprintf("var %s %s", name, si.typeInfo.Name())
-	case reflect.Map:
-		return fmt.Sprintf("%s := %s{}", name, si.typeInfo.Name())
-	default:
-		panic("AsInitialization: unsupported type")
-	}
-}
-
 // AsReturnType generates a declaration for si as a return type.
 func (si TypeValueInfo) AsReturnType() string {
 	switch si.typeInfo.Kind() {
@@ -101,5 +89,17 @@ func (si TypeValueInfo) AsReturnValue(name string) string {
 		return fmt.Sprintf("%s", name)
 	default:
 		panic("AsReturnValue: unsupported type")
+	}
+}
+
+// CanBeNil returns whether a declaration of this type can be nil.
+func (si TypeValueInfo) CanBeNil() bool {
+	switch si.typeInfo.Kind() {
+	case reflect.Struct:
+		return false
+	case reflect.Map:
+		return true
+	default:
+		panic("CanBeNil: unsupported type")
 	}
 }

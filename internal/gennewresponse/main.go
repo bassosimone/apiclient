@@ -31,10 +31,17 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprintf(filep, "\t%s\n", typevalueinfo.AsInitialization("out"))
+	fmtx.Fprintf(filep, "\tvar out %s\n", typevalueinfo.TypeName())
 	fmtx.Fprint(filep, "\tif err := json.Unmarshal(data, &out); err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
+	// For rationale, see https://play.golang.org/p/m9-MsTaQ5wt and
+	// https://play.golang.org/p/6h-v-PShMk9.
+	if typevalueinfo.CanBeNil() {
+		fmtx.Fprint(filep, "\tif out == nil {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, errors.New(\"apiclient: server returned us a literal null\")\n")
+		fmtx.Fprint(filep, "\t}\n")
+	}
 	fmtx.Fprintf(filep, "\treturn %s, nil\n", typevalueinfo.AsReturnValue("out"))
 }
 
