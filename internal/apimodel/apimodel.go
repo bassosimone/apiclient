@@ -11,8 +11,6 @@ type Descriptor struct {
 	Response interface{}
 }
 
-// TODO(bassosimone): sort the list below by API
-
 // Descriptors contains all descriptors.
 var Descriptors = []Descriptor{{
 	Method:   "GET",
@@ -35,6 +33,16 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.MeasurementMetaRequest{},
 	Response: datamodel.MeasurementMetaResponse{},
 }, {
+	Method:   "POST",
+	URLPath:  "/api/v1/register",
+	Request:  datamodel.RegisterRequest{},
+	Response: datamodel.RegisterResponse{},
+}, {
+	Method:   "GET",
+	URLPath:  "/api/v1/test-helpers",
+	Request:  datamodel.TestHelpersRequest{},
+	Response: datamodel.TestHelpersResponse{},
+}, {
 	Method:   "GET",
 	URLPath:  "/api/v1/test-list/psiphon-config",
 	Request:  datamodel.PsiphonConfigRequest{},
@@ -45,10 +53,10 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.TorTargetsRequest{},
 	Response: datamodel.TorTargetsResponse{},
 }, {
-	Method:   "POST",
-	URLPath:  "/api/v1/register",
-	Request:  datamodel.RegisterRequest{},
-	Response: datamodel.RegisterResponse{},
+	Method:   "GET",
+	URLPath:  "/api/v1/test-list/urls",
+	Request:  datamodel.URLSRequest{},
+	Response: datamodel.URLSResponse{},
 }, {
 	Method:   "POST",
 	URLPath:  "/report",
@@ -59,14 +67,4 @@ var Descriptors = []Descriptor{{
 	URLPath:  "/report/{{ .ReportID }}",
 	Request:  datamodel.SubmitMeasurementRequest{},
 	Response: datamodel.SubmitMeasurementResponse{},
-}, {
-	Method:   "GET",
-	URLPath:  "/api/v1/test-helpers",
-	Request:  datamodel.TestHelpersRequest{},
-	Response: datamodel.TestHelpersResponse{},
-}, {
-	Method:   "GET",
-	URLPath:  "/api/v1/test-list/urls",
-	Request:  datamodel.URLSRequest{},
-	Response: datamodel.URLSResponse{},
 }}
