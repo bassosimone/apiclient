@@ -5,27 +5,20 @@ import (
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
-	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
-func gettype(in interface{}) string {
-	sinfo, err := reflectx.NewTypeValueInfo(in)
-	fatalx.OnError(err, "reflectx.NewStructInfo failed")
-	return sinfo.TypeName()
-}
-
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
-	typename := gettype(desc.Response)
-	fmtx.Fprintf(filep, "func new%s", typename)
+	typevalueinfo := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
+	fmtx.Fprintf(filep, "func new%s", typevalueinfo.TypeName())
 	fmtx.Fprint(filep, "(resp *http.Response, err error)")
-	fmtx.Fprintf(filep, " (*%s, error) {\n", typename)
+	fmtx.Fprintf(filep, " (%s, error) {\n", typevalueinfo.AsReturnType())
 }
 
 func genparse(filep osx.File, desc *apimodel.Descriptor) {
-	typename := gettype(desc.Response)
+	typevalueinfo := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
@@ -38,11 +31,11 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprintf(filep, "\tvar out %s\n", typename)
+	fmtx.Fprintf(filep, "\t%s\n", typevalueinfo.AsInitialization("out"))
 	fmtx.Fprint(filep, "\tif err := json.Unmarshal(data, &out); err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprint(filep, "\treturn &out, nil\n")
+	fmtx.Fprintf(filep, "\treturn %s, nil\n", typevalueinfo.AsReturnValue("out"))
 }
 
 func genendfunc(filep osx.File) {

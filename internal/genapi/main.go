@@ -6,38 +6,31 @@ import (
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
-	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
-func gettype(in interface{}) string {
-	sinfo, err := reflectx.NewTypeValueInfo(in)
-	fatalx.OnError(err, "reflectx.NewStructInfo failed")
-	return sinfo.TypeName()
-}
-
 func getapiame(in interface{}) string {
-	name := gettype(in)
+	name := reflectx.Must(reflectx.NewTypeValueInfo(in)).TypeName()
 	name = strings.Replace(name, "Request", "", 1)
 	name = strings.Replace(name, "Response", "", 1)
 	return name
 }
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
-	resp := gettype(desc.Response)
-	req := gettype(desc.Request)
+	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "// %s%s implements the %s %s API\n", desc.Method, apiname, desc.Method, desc.URLPath)
 	fmtx.Fprintf(filep, "func (c Client) %s%s", desc.Method, apiname)
 	fmtx.Fprintf(filep, "(ctx context.Context, in *%s)", req)
-	fmtx.Fprintf(filep, " (*%s, error) {\n", resp)
+	fmtx.Fprintf(filep, " (%s, error) {\n", resp.AsReturnType())
 }
 
 func gencall(filep osx.File, desc *apimodel.Descriptor) {
-	resp := gettype(desc.Response)
-	req := gettype(desc.Request)
+	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response)).TypeName()
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
 	fmtx.Fprintf(filep, "\treq, err := new%s(ctx, c.BaseURL, in)\n", req)
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")

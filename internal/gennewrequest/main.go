@@ -13,12 +13,6 @@ import (
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
-func gettype(in interface{}) string {
-	sinfo, err := reflectx.NewTypeValueInfo(in)
-	fatalx.OnError(err, "reflectx.NewStructInfo failed")
-	return sinfo.TypeName()
-}
-
 func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 	sinfo, err := reflectx.NewTypeValueInfo(in)
 	fatalx.OnError(err, "reflectx.NewStructInfo failed")
@@ -28,7 +22,7 @@ func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 }
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
-	typename := gettype(desc.Request)
+	typename := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
 	fmtx.Fprintf(filep, "func new%s", typename)
 	fmtx.Fprint(filep, "(ctx context.Context, ")
 	fmtx.Fprint(filep, "baseURL string, ")

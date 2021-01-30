@@ -3,7 +3,10 @@ package reflectx
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+
+	"github.com/bassosimone/apiclient/internal/fatalx"
 )
 
 // This package returns the following errors.
@@ -29,6 +32,12 @@ func NewTypeValueInfo(in interface{}) (*TypeValueInfo, error) {
 	}
 	typeInfo := valueInfo.Type()
 	return &TypeValueInfo{typeInfo: typeInfo, valueInfo: &valueInfo}, nil
+}
+
+// Must fails if we cannot construct a TypeValueInfo
+func Must(si *TypeValueInfo, err error) *TypeValueInfo {
+	fatalx.OnError(err, "NewTypeValueInfo failed")
+	return si
 }
 
 // TypeName returns the name of the struct type.
@@ -57,4 +66,40 @@ func (si TypeValueInfo) AllFieldsWithTag(tagName string) ([]*FieldInfo, error) {
 		out = append(out, &FieldInfo{Self: &fieldType, Value: &fieldValue})
 	}
 	return out, nil
+}
+
+// AsInitialization generates an initialization for the named variable
+func (si TypeValueInfo) AsInitialization(name string) string {
+	switch si.typeInfo.Kind() {
+	case reflect.Struct:
+		return fmt.Sprintf("var %s %s", name, si.typeInfo.Name())
+	case reflect.Map:
+		return fmt.Sprintf("%s := %s{}", name, si.typeInfo.Name())
+	default:
+		panic("AsInitialization: unsupported type")
+	}
+}
+
+// AsReturnType generates a declaration for si as a return type.
+func (si TypeValueInfo) AsReturnType() string {
+	switch si.typeInfo.Kind() {
+	case reflect.Struct:
+		return fmt.Sprintf("*%s", si.typeInfo.Name())
+	case reflect.Map:
+		return fmt.Sprintf("%s", si.typeInfo.Name())
+	default:
+		panic("AsReturnType: unsupported type")
+	}
+}
+
+// AsReturnValue generates a declaration for si as a return value.
+func (si TypeValueInfo) AsReturnValue(name string) string {
+	switch si.typeInfo.Kind() {
+	case reflect.Struct:
+		return fmt.Sprintf("&%s", name)
+	case reflect.Map:
+		return fmt.Sprintf("%s", name)
+	default:
+		panic("AsReturnValue: unsupported type")
+	}
 }
