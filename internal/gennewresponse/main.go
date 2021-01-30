@@ -1,3 +1,4 @@
+// This script generates newresponse.go.
 package main
 
 import (

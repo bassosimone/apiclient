@@ -102,4 +102,3 @@ type MeasurementMetaResponse struct {
 	TestName             string `json:"test_name"`
 	TestStartTime        string `json:"test_start_time"`
 }
-

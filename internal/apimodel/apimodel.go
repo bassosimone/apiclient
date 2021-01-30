@@ -1,3 +1,4 @@
+// Package apimodel describes all the implemented APIs.
 package apimodel
 
 import "github.com/bassosimone/apiclient/internal/datamodel"

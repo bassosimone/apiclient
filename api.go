@@ -58,4 +58,3 @@ func (c Client) GETURLS(ctx context.Context, in *URLSRequest) (*URLSResponse, er
 	}
 	return NewURLSResponse(c.HTTPClient.Do(req))
 }
-

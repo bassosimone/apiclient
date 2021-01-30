@@ -1,3 +1,4 @@
+// This script generates api.go
 package main
 
 import (

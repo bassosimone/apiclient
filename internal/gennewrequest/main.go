@@ -1,3 +1,4 @@
+// This script generates newrequest.go
 package main
 
 import (

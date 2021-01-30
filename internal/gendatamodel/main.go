@@ -1,9 +1,9 @@
+// This script generates datamodel.go
 package main
 
 import (
 	"flag"
 	"fmt"
-	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
@@ -12,19 +12,6 @@ import (
 
 	"github.com/bassosimone/apiclient/internal/fatalx"
 )
-
-func isRequestOrResponse(decl ast.Decl) bool {
-	gendecl, good := decl.(*ast.GenDecl)
-	if !good {
-		return false
-	}
-	switch gendecl.Tok {
-	case token.TYPE, token.VAR:
-		return true
-	default:
-		return false
-	}
-}
 
 func main() {
 	outfile := flag.String("outfile", "datamodel.go", "Output file")
@@ -54,10 +41,6 @@ func main() {
 
 	for _, fdata := range model.Files {
 		for _, decl := range fdata.Decls {
-			if !isRequestOrResponse(decl) {
-				continue
-			}
-
 			err = format.Node(filep, fset, decl)
 			fatalx.OnError(err, "format.Node failed")
 

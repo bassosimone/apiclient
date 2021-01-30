@@ -9,10 +9,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"text/template"
 	"net/http"
 	"net/url"
 	"strings"
+	"text/template"
 )
 
 // NewCheckReportIDRequest creates a new CheckReportIDRequest
@@ -120,4 +120,3 @@ func NewURLSRequest(ctx context.Context, baseURL string, req *URLSRequest) (*htt
 	URL.RawQuery = query.Encode()
 	return http.NewRequestWithContext(ctx, "GET", URL.String(), nil)
 }
-

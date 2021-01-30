@@ -1,3 +1,4 @@
+// Package fatalx simplifies checking for errors.
 package fatalx
 
 import "log"

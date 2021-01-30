@@ -1,3 +1,4 @@
+// Package reflectx extends the reflect package.
 package reflectx
 
 import (

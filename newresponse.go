@@ -6,8 +6,8 @@ package apiclient
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -136,4 +136,3 @@ func NewURLSResponse(resp *http.Response, err error) (*URLSResponse, error) {
 	}
 	return &out, nil
 }
-
