@@ -3,9 +3,12 @@ package main
 
 import (
 	"flag"
+	"go/ast"
 	"go/format"
 	"go/parser"
 	"go/token"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/fatalx"
@@ -35,11 +38,21 @@ func main() {
 	model := pkgs["datamodel"]
 	fatalx.IfNil(model, "cannot find the datamodel package")
 
+	var decls []ast.Decl
 	for _, fdata := range model.Files {
 		for _, decl := range fdata.Decls {
-			err = format.Node(filep, fset, decl)
-			fatalx.OnError(err, "format.Node failed")
-			filep.WriteString("\n\n")
+			decls = append(decls, decl)
 		}
+	}
+	sort.SliceStable(decls, func(i, j int) bool {
+		// we're optimistically assuming datamodel only contains structs
+		left := decls[i].(*ast.GenDecl).Specs[0].(*ast.TypeSpec).Name
+		right := decls[j].(*ast.GenDecl).Specs[0].(*ast.TypeSpec).Name
+		return strings.Compare(left.String(), right.String()) <= 0
+	})
+	for _, decl := range decls {
+		err = format.Node(filep, fset, decl)
+		fatalx.OnError(err, "format.Node failed")
+		filep.WriteString("\n\n")
 	}
 }
