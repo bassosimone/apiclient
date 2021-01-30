@@ -2,7 +2,7 @@ package datamodel
 
 // MeasurementMetaRequest is the MeasurementMeta Request.
 type MeasurementMetaRequest struct {
-	ReportID string `query:"report_id"`
+	ReportID string `query:"report_id" mandatory:"true"`
 	Full     bool   `query:"full"`
 	Input    string `query:"input"`
 }

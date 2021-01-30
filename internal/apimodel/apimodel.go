@@ -2,14 +2,16 @@ package apimodel
 
 import "github.com/bassosimone/apiclient/internal/datamodel"
 
-type descriptor struct {
+// Descriptor is an API descriptor.
+type Descriptor struct {
 	Method   string
 	URLPath  string
 	Request  interface{}
 	Response interface{}
 }
 
-var descriptors = []descriptor{{
+// Descriptors contains all descriptors.
+var Descriptors = []Descriptor{{
 	Method:   "GET",
 	URLPath:  "/api/_/check_report_id",
 	Request:  datamodel.CheckReportIDRequest{},
