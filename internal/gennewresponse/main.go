@@ -19,8 +19,7 @@ func gettype(in interface{}) string {
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typename := gettype(desc.Response)
-	fmtx.Fprintf(filep, "// New%s creates a new %s\n", typename, typename)
-	fmtx.Fprintf(filep, "func New%s", typename)
+	fmtx.Fprintf(filep, "func new%s", typename)
 	fmtx.Fprint(filep, "(resp *http.Response, err error)")
 	fmtx.Fprintf(filep, " (*%s, error) {\n", typename)
 }

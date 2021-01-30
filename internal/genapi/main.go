@@ -38,11 +38,11 @@ func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 func gencall(filep osx.File, desc *apimodel.Descriptor) {
 	resp := gettype(desc.Response)
 	req := gettype(desc.Request)
-	fmtx.Fprintf(filep, "\treq, err := New%s(ctx, c.BaseURL, in)\n", req)
+	fmtx.Fprintf(filep, "\treq, err := new%s(ctx, c.BaseURL, in)\n", req)
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprintf(filep, "\treturn New%s(c.HTTPClient.Do(req))\n", resp)
+	fmtx.Fprintf(filep, "\treturn new%s(c.HTTPClient.Do(req))\n", resp)
 }
 
 func genendfunc(filep osx.File) {

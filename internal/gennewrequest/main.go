@@ -27,8 +27,7 @@ func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typename := gettype(desc.Request)
-	fmtx.Fprintf(filep, "// New%s creates a new %s\n", typename, typename)
-	fmtx.Fprintf(filep, "func New%s", typename)
+	fmtx.Fprintf(filep, "func new%s", typename)
 	fmtx.Fprint(filep, "(ctx context.Context, ")
 	fmtx.Fprint(filep, "baseURL string, ")
 	fmtx.Fprintf(filep, "req *%s)", typename)
