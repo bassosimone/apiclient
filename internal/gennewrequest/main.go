@@ -3,7 +3,6 @@ package main
 
 import (
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
@@ -31,11 +30,11 @@ func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 }
 
 func genurlpath(filep osx.File, desc *apimodel.Descriptor) {
-	if !strings.Contains(desc.URLPath, "{{ ") {
-		fmtx.Fprintf(filep, "\tURL.Path = \"%s\"\n", desc.URLPath)
+	if desc.URLPath.IsTemplate == false {
+		fmtx.Fprintf(filep, "\tURL.Path = \"%s\"\n", desc.URLPath.Value)
 		return
 	}
-	fmtx.Fprintf(filep, "\ttmpl, err := template.New(\"urlpath\").Parse(\"%s\")\n", desc.URLPath)
+	fmtx.Fprintf(filep, "\ttmpl, err := template.New(\"urlpath\").Parse(\"%s\")\n", desc.URLPath.Value)
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")

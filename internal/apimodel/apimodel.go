@@ -3,10 +3,16 @@ package apimodel
 
 import "github.com/bassosimone/apiclient/internal/datamodel"
 
+// URLPath describes the URLPath.
+type URLPath struct {
+	IsTemplate bool
+	Value      string
+}
+
 // Descriptor is an API descriptor.
 type Descriptor struct {
 	Method   string
-	URLPath  string
+	URLPath  URLPath
 	Request  interface{}
 	Response interface{}
 }
@@ -14,57 +20,57 @@ type Descriptor struct {
 // Descriptors contains all descriptors.
 var Descriptors = []Descriptor{{
 	Method:   "GET",
-	URLPath:  "/api/_/check_report_id",
+	URLPath:  URLPath{Value: "/api/_/check_report_id"},
 	Request:  datamodel.CheckReportIDRequest{},
 	Response: datamodel.CheckReportIDResponse{},
 }, {
 	Method:   "POST",
-	URLPath:  "/api/v1/check-in",
+	URLPath:  URLPath{Value: "/api/v1/check-in"},
 	Request:  datamodel.CheckInRequest{},
 	Response: datamodel.CheckInResponse{},
 }, {
 	Method:   "POST",
-	URLPath:  "/api/v1/login",
+	URLPath:  URLPath{Value: "/api/v1/login"},
 	Request:  datamodel.LoginRequest{},
 	Response: datamodel.LoginResponse{},
 }, {
 	Method:   "GET",
-	URLPath:  "/api/v1/measurement_meta",
+	URLPath:  URLPath{Value: "/api/v1/measurement_meta"},
 	Request:  datamodel.MeasurementMetaRequest{},
 	Response: datamodel.MeasurementMetaResponse{},
 }, {
 	Method:   "POST",
-	URLPath:  "/api/v1/register",
+	URLPath:  URLPath{Value: "/api/v1/register"},
 	Request:  datamodel.RegisterRequest{},
 	Response: datamodel.RegisterResponse{},
 }, {
 	Method:   "GET",
-	URLPath:  "/api/v1/test-helpers",
+	URLPath:  URLPath{Value: "/api/v1/test-helpers"},
 	Request:  datamodel.TestHelpersRequest{},
 	Response: datamodel.TestHelpersResponse{},
 }, {
 	Method:   "GET",
-	URLPath:  "/api/v1/test-list/psiphon-config",
+	URLPath:  URLPath{Value: "/api/v1/test-list/psiphon-config"},
 	Request:  datamodel.PsiphonConfigRequest{},
 	Response: datamodel.PsiphonConfigResponse{},
 }, {
 	Method:   "GET",
-	URLPath:  "/api/v1/test-list/tor-targets",
+	URLPath:  URLPath{Value: "/api/v1/test-list/tor-targets"},
 	Request:  datamodel.TorTargetsRequest{},
 	Response: datamodel.TorTargetsResponse{},
 }, {
 	Method:   "GET",
-	URLPath:  "/api/v1/test-list/urls",
+	URLPath:  URLPath{Value: "/api/v1/test-list/urls"},
 	Request:  datamodel.URLSRequest{},
 	Response: datamodel.URLSResponse{},
 }, {
 	Method:   "POST",
-	URLPath:  "/report",
+	URLPath:  URLPath{Value: "/report"},
 	Request:  datamodel.OpenReportRequest{},
 	Response: datamodel.OpenReportResponse{},
 }, {
 	Method:   "POST",
-	URLPath:  "/report/{{ .ReportID }}",
+	URLPath:  URLPath{Value: "/report/{{ .ReportID }}", IsTemplate: true},
 	Request:  datamodel.SubmitMeasurementRequest{},
 	Response: datamodel.SubmitMeasurementResponse{},
 }}

@@ -22,7 +22,7 @@ func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
 	apiname := getapiame(desc.Response)
-	fmtx.Fprintf(filep, "// %s%s implements the %s %s API\n", desc.Method, apiname, desc.Method, desc.URLPath)
+	fmtx.Fprintf(filep, "// %s%s implements the %s %s API\n", desc.Method, apiname, desc.Method, desc.URLPath.Value)
 	fmtx.Fprintf(filep, "func (c Client) %s%s", desc.Method, apiname)
 	fmtx.Fprintf(filep, "(ctx context.Context, in *%s)", req)
 	fmtx.Fprintf(filep, " (%s, error) {\n", resp.AsReturnType())
