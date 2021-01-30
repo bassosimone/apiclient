@@ -28,6 +28,8 @@ func main() {
 	fmtx.Fprintf(filep, "// %+v\n\n", time.Now())
 	filep.WriteString("package apiclient\n\n")
 
+	filep.WriteString("import \"time\"\n\n")
+
 	fmtx.Fprint(filep, "//go:generate go run ./internal/gendatamodel/...\n\n")
 
 	fset := token.NewFileSet()
@@ -41,11 +43,19 @@ func main() {
 	var decls []ast.Decl
 	for _, fdata := range model.Files {
 		for _, decl := range fdata.Decls {
-			decls = append(decls, decl)
+			switch v := decl.(type) {
+			case *ast.GenDecl:
+				if len(v.Specs) == 1 {
+					switch v.Specs[0].(type) {
+					case *ast.TypeSpec:
+						decls = append(decls, decl)
+					}
+				}
+			}
 		}
 	}
 	sort.SliceStable(decls, func(i, j int) bool {
-		// we're optimistically assuming datamodel only contains structs
+		// we already exclude imports in the above loop
 		left := decls[i].(*ast.GenDecl).Specs[0].(*ast.TypeSpec).Name
 		right := decls[j].(*ast.GenDecl).Specs[0].(*ast.TypeSpec).Name
 		return strings.Compare(left.String(), right.String()) <= 0

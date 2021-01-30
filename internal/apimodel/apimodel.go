@@ -23,6 +23,11 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.CheckInRequest{},
 	Response: datamodel.CheckInResponse{},
 }, {
+	Method:   "POST",
+	URLPath:  "/api/v1/login",
+	Request:  datamodel.LoginRequest{},
+	Response: datamodel.LoginResponse{},
+}, {
 	Method:   "GET",
 	URLPath:  "/api/v1/measurement_meta",
 	Request:  datamodel.MeasurementMetaRequest{},
