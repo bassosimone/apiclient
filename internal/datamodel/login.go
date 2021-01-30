@@ -1,7 +1,5 @@
 package datamodel
 
-import "time"
-
 // LoginRequest is the login API request
 type LoginRequest struct {
 	ClientID string `json:"username"`
@@ -10,6 +8,6 @@ type LoginRequest struct {
 
 // LoginResponse is the login API response
 type LoginResponse struct {
-	Expire time.Time `json:"expire"`
-	Token  string    `json:"token"`
+	Expire string `json:"expire"`
+	Token  string `json:"token"`
 }

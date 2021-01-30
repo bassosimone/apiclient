@@ -7,6 +7,7 @@ import "github.com/bassosimone/apiclient/internal/datamodel"
 type URLPath struct {
 	IsTemplate bool
 	Value      string
+	InSwagger  string
 }
 
 // Descriptor is an API descriptor.
@@ -69,8 +70,12 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.OpenReportRequest{},
 	Response: datamodel.OpenReportResponse{},
 }, {
-	Method:   "POST",
-	URLPath:  URLPath{Value: "/report/{{ .ReportID }}", IsTemplate: true},
+	Method: "POST",
+	URLPath: URLPath{
+		InSwagger:  "/report/{report_id}",
+		IsTemplate: true,
+		Value:      "/report/{{ .ReportID }}",
+	},
 	Request:  datamodel.SubmitMeasurementRequest{},
 	Response: datamodel.SubmitMeasurementResponse{},
 }}

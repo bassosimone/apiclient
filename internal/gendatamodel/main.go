@@ -28,8 +28,6 @@ func main() {
 	fmtx.Fprintf(filep, "// %+v\n\n", time.Now())
 	filep.WriteString("package apiclient\n\n")
 
-	filep.WriteString("import \"time\"\n\n")
-
 	fmtx.Fprint(filep, "//go:generate go run ./internal/gendatamodel/...\n\n")
 
 	fset := token.NewFileSet()

@@ -2,7 +2,7 @@ package datamodel
 
 // CheckReportIDRequest is the CheckReportID request.
 type CheckReportIDRequest struct {
-	ReportID string `query:"report_id" mandatory:"true"`
+	ReportID string `query:"report_id" required:"true"`
 }
 
 // CheckReportIDResponse is the CheckReportID response.

@@ -49,7 +49,7 @@ func genurlpath(filep osx.File, desc *apimodel.Descriptor) {
 func genqueryforstring(filep osx.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
-	if field.Self.Tag.Get("mandatory") == "true" {
+	if field.Self.Tag.Get("required") == "true" {
 		fmtx.Fprintf(filep, "\tif req.%s == \"\" {\n", name)
 		fmtx.Fprint(filep, "\t\treturn nil, fmt.Errorf(")
 		fmtx.Fprintf(filep, "\"%%w: %s\", ErrEmptyField)\n", name)
@@ -67,7 +67,7 @@ func genqueryforstring(filep osx.File, field *reflectx.FieldInfo) {
 func genqueryforbool(filep osx.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
-	// mandatory does not make much sense for a boolean field
+	// required does not make much sense for a boolean field
 	fmtx.Fprintf(filep, "\tif req.%s {\n", name)
 	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", \"true\")\n", query)
 	fmtx.Fprintf(filep, "\t}\n")
@@ -76,7 +76,7 @@ func genqueryforbool(filep osx.File, field *reflectx.FieldInfo) {
 func genqueryforint64(filep osx.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
-	// mandatory does not make much sense for an integer field
+	// required does not make much sense for an integer field
 	fmtx.Fprintf(filep, "\tif req.%s != 0 {\n", name)
 	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", fmt.Sprintf(\"%%d\", req.%s))\n", query, name)
 	fmtx.Fprintf(filep, "\t}\n")
