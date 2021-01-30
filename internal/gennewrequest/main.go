@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
 	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
@@ -27,65 +27,65 @@ func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 
 func genbeginfunc(filep *os.File, desc *apimodel.Descriptor) {
 	typename := gettype(desc.Request)
-	fmt.Fprintf(filep, "// New%s creates a new %s\n", typename, typename)
-	fmt.Fprintf(filep, "func New%s", typename)
-	fmt.Fprint(filep, "(ctx context.Context, ")
-	fmt.Fprint(filep, "baseURL string, ")
-	fmt.Fprintf(filep, "req *%s)", typename)
-	fmt.Fprint(filep, " (*http.Request, error) {\n")
+	fmtx.Fprintf(filep, "// New%s creates a new %s\n", typename, typename)
+	fmtx.Fprintf(filep, "func New%s", typename)
+	fmtx.Fprint(filep, "(ctx context.Context, ")
+	fmtx.Fprint(filep, "baseURL string, ")
+	fmtx.Fprintf(filep, "req *%s)", typename)
+	fmtx.Fprint(filep, " (*http.Request, error) {\n")
 }
 
 func genurlpath(filep *os.File, desc *apimodel.Descriptor) {
 	if !strings.Contains(desc.URLPath, "{{ ") {
-		fmt.Fprintf(filep, "\tURL.Path = \"%s\"\n", desc.URLPath)
+		fmtx.Fprintf(filep, "\tURL.Path = \"%s\"\n", desc.URLPath)
 		return
 	}
-	fmt.Fprintf(filep, "\ttmpl, err := template.New(\"urlpath\").Parse(\"%s\")\n", desc.URLPath)
-	fmt.Fprint(filep, "\tif err != nil {\n")
-	fmt.Fprint(filep, "\t\treturn nil, err\n")
-	fmt.Fprint(filep, "\t}\n")
-	fmt.Fprint(filep, "\tvar urlpath strings.Builder\n")
-	fmt.Fprint(filep, "\terr = tmpl.Execute(&urlpath, req)\n")
-	fmt.Fprint(filep, "\tif err != nil {\n")
-	fmt.Fprint(filep, "\t\treturn nil, err\n")
-	fmt.Fprint(filep, "\t}\n")
-	fmt.Fprint(filep, "\tURL.Path = urlpath.String()\n")
+	fmtx.Fprintf(filep, "\ttmpl, err := template.New(\"urlpath\").Parse(\"%s\")\n", desc.URLPath)
+	fmtx.Fprint(filep, "\tif err != nil {\n")
+	fmtx.Fprint(filep, "\t\treturn nil, err\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tvar urlpath strings.Builder\n")
+	fmtx.Fprint(filep, "\terr = tmpl.Execute(&urlpath, req)\n")
+	fmtx.Fprint(filep, "\tif err != nil {\n")
+	fmtx.Fprint(filep, "\t\treturn nil, err\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tURL.Path = urlpath.String()\n")
 }
 
 func genqueryforstring(filep *os.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
 	if field.Self.Tag.Get("mandatory") == "true" {
-		fmt.Fprintf(filep, "\tif req.%s == \"\" {\n", name)
-		fmt.Fprint(filep, "\t\treturn nil, errors.New(")
-		fmt.Fprintf(filep, "\"apiclient: empty %s field\")\n", name)
-		fmt.Fprintf(filep, "\t}\n")
-		fmt.Fprintf(filep, "\tquery.Add(\"%s\", ", query)
-		fmt.Fprintf(filep, "req.%s)\n", name)
+		fmtx.Fprintf(filep, "\tif req.%s == \"\" {\n", name)
+		fmtx.Fprint(filep, "\t\treturn nil, errors.New(")
+		fmtx.Fprintf(filep, "\"apiclient: empty %s field\")\n", name)
+		fmtx.Fprintf(filep, "\t}\n")
+		fmtx.Fprintf(filep, "\tquery.Add(\"%s\", ", query)
+		fmtx.Fprintf(filep, "req.%s)\n", name)
 		return
 	}
-	fmt.Fprintf(filep, "\tif req.%s != \"\" {\n", name)
-	fmt.Fprintf(filep, "\t\tquery.Add(\"%s\", ", query)
-	fmt.Fprintf(filep, "req.%s)\n", name)
-	fmt.Fprintf(filep, "\t}\n")
+	fmtx.Fprintf(filep, "\tif req.%s != \"\" {\n", name)
+	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", ", query)
+	fmtx.Fprintf(filep, "req.%s)\n", name)
+	fmtx.Fprintf(filep, "\t}\n")
 }
 
 func genqueryforbool(filep *os.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
 	// mandatory does not make much sense for a boolean field
-	fmt.Fprintf(filep, "\tif req.%s {\n", name)
-	fmt.Fprintf(filep, "\t\tquery.Add(\"%s\", \"true\")\n", query)
-	fmt.Fprintf(filep, "\t}\n")
+	fmtx.Fprintf(filep, "\tif req.%s {\n", name)
+	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", \"true\")\n", query)
+	fmtx.Fprintf(filep, "\t}\n")
 }
 
 func genqueryforint64(filep *os.File, field *reflectx.FieldInfo) {
 	name := field.Self.Name
 	query := field.Self.Tag.Get("query")
 	// mandatory does not make much sense for an integer field
-	fmt.Fprintf(filep, "\tif req.%s != 0 {\n", name)
-	fmt.Fprintf(filep, "\t\tquery.Add(\"%s\", fmt.Sprintf(\"%%d\", req.%s))\n", query, name)
-	fmt.Fprintf(filep, "\t}\n")
+	fmtx.Fprintf(filep, "\tif req.%s != 0 {\n", name)
+	fmtx.Fprintf(filep, "\t\tquery.Add(\"%s\", fmtx.Sprintf(\"%%d\", req.%s))\n", query, name)
+	fmtx.Fprintf(filep, "\t}\n")
 }
 
 func genquery(filep *os.File, desc *apimodel.Descriptor) {
@@ -96,7 +96,7 @@ func genquery(filep *os.File, desc *apimodel.Descriptor) {
 	if fields == nil {
 		return
 	}
-	fmt.Fprint(filep, "\tquery := url.Values{}\n")
+	fmtx.Fprint(filep, "\tquery := url.Values{}\n")
 	for _, field := range fields {
 		switch field.Self.Type.Kind() {
 		case reflect.String:
@@ -109,34 +109,34 @@ func genquery(filep *os.File, desc *apimodel.Descriptor) {
 			panic("query: unsupported field type")
 		}
 	}
-	fmt.Fprint(filep, "\tURL.RawQuery = query.Encode()\n")
+	fmtx.Fprint(filep, "\tURL.RawQuery = query.Encode()\n")
 }
 
 func gencreaterequest(filep *os.File, desc *apimodel.Descriptor) {
 	if desc.Method == "POST" {
-		fmt.Fprint(filep, "\tbody, err := json.Marshal(req)\n")
-		fmt.Fprint(filep, "\tif err != nil {\n")
-		fmt.Fprint(filep, "\t\treturn nil, err\n")
-		fmt.Fprint(filep, "\t}\n")
+		fmtx.Fprint(filep, "\tbody, err := json.Marshal(req)\n")
+		fmtx.Fprint(filep, "\tif err != nil {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, err\n")
+		fmtx.Fprint(filep, "\t}\n")
 	}
-	fmt.Fprint(filep, "\treturn http.NewRequestWithContext(")
-	fmt.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
+	fmtx.Fprint(filep, "\treturn http.NewRequestWithContext(")
+	fmtx.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
 	if desc.Method != "POST" {
-		fmt.Fprint(filep, "nil)\n")
+		fmtx.Fprint(filep, "nil)\n")
 		return
 	}
-	fmt.Fprint(filep, "bytes.NewReader(body))\n")
+	fmtx.Fprint(filep, "bytes.NewReader(body))\n")
 }
 
 func genmakeurl(filep *os.File, desc *apimodel.Descriptor) {
-	fmt.Fprint(filep, "\tURL, err := url.Parse(baseURL)\n")
-	fmt.Fprint(filep, "\tif err != nil {\n")
-	fmt.Fprint(filep, "\t\treturn nil, err\n")
-	fmt.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tURL, err := url.Parse(baseURL)\n")
+	fmtx.Fprint(filep, "\tif err != nil {\n")
+	fmtx.Fprint(filep, "\t\treturn nil, err\n")
+	fmtx.Fprint(filep, "\t}\n")
 }
 
 func genendfunc(filep *os.File) {
-	fmt.Fprintf(filep, "}\n\n")
+	fmtx.Fprintf(filep, "}\n\n")
 }
 
 func genapi(filep *os.File, desc *apimodel.Descriptor) {
@@ -152,22 +152,20 @@ func main() {
 	filep, err := os.Create("newrequest.go")
 	fatalx.OnError(err, "os.Create failed")
 
-	// TODO(bassosimone): handle all the possible write errors
-
-	fmt.Fprint(filep, "// Code generated by go generate; DO NOT EDIT.\n")
-	fmt.Fprintf(filep, "// %v\n\n", time.Now())
-	fmt.Fprint(filep, "package apiclient\n\n")
-	fmt.Fprint(filep, "import (\n")
-	fmt.Fprint(filep, "\t\"bytes\"\n")
-	fmt.Fprint(filep, "\t\"context\"\n")
-	fmt.Fprint(filep, "\t\"encoding/json\"\n")
-	fmt.Fprint(filep, "\t\"errors\"\n")
-	fmt.Fprint(filep, "\t\"fmt\"\n")
-	fmt.Fprint(filep, "\t\"text/template\"\n")
-	fmt.Fprint(filep, "\t\"net/http\"\n")
-	fmt.Fprint(filep, "\t\"net/url\"\n")
-	fmt.Fprint(filep, "\t\"strings\"\n")
-	fmt.Fprint(filep, ")\n\n")
+	fmtx.Fprint(filep, "// Code generated by go generate; DO NOT EDIT.\n")
+	fmtx.Fprintf(filep, "// %v\n\n", time.Now())
+	fmtx.Fprint(filep, "package apiclient\n\n")
+	fmtx.Fprint(filep, "import (\n")
+	fmtx.Fprint(filep, "\t\"bytes\"\n")
+	fmtx.Fprint(filep, "\t\"context\"\n")
+	fmtx.Fprint(filep, "\t\"encoding/json\"\n")
+	fmtx.Fprint(filep, "\t\"errors\"\n")
+	fmtx.Fprint(filep, "\t\"fmt\"\n")
+	fmtx.Fprint(filep, "\t\"text/template\"\n")
+	fmtx.Fprint(filep, "\t\"net/http\"\n")
+	fmtx.Fprint(filep, "\t\"net/url\"\n")
+	fmtx.Fprint(filep, "\t\"strings\"\n")
+	fmtx.Fprint(filep, ")\n\n")
 
 	for _, descr := range apimodel.Descriptors {
 		genapi(filep, &descr)
