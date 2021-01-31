@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
 	"github.com/bassosimone/apiclient/internal/fatalx"
@@ -167,12 +168,16 @@ func genpath(up *apimodel.URLPath) string {
 	return up.Value
 }
 
+func genversion() string {
+	return time.Now().UTC().Format("0.20060102.1150405")
+}
+
 func main() {
 	swagger := swagger{
 		OpenAPI: "3.0.0",
 		Info: apiInfo{
 			Title:   "OONI API specification",
-			Version: "2021.01.31",
+			Version: genversion(),
 		},
 		Servers: []serverInfo{{
 			URL: "https://api.ooni.io/",
