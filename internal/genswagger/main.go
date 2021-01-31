@@ -3,13 +3,14 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
 	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/fmtx"
+	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
@@ -201,5 +202,7 @@ func main() {
 	}
 	data, err := json.MarshalIndent(swagger, "", "    ")
 	fatalx.OnError(err, "json.Marshal failed")
-	fmt.Printf("%s\n", string(data))
+	filep := osx.MustCreate("swagger.json")
+	defer filep.Close()
+	fmtx.Fprintf(filep, "%s\n", string(data))
 }
