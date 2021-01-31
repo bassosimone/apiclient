@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -30,10 +29,10 @@ type schemaInfo struct {
 }
 
 type parameterInfo struct {
-	Name     string     `json:"name"`
-	In       string     `json:"in"`
-	Required bool       `json:"required"`
-	Schema   schemaInfo `json:"schema"`
+	Name     string      `json:"name"`
+	In       string      `json:"in"`
+	Required bool        `json:"required"`
+	Schema   *schemaInfo `json:"schema"`
 }
 
 type jsonInfo struct {
@@ -71,21 +70,6 @@ type swagger struct {
 	Paths   map[string]*pathInfo `json:"paths"`
 }
 
-func gettype(t reflect.Type) string {
-	switch t.Kind() {
-	case reflect.Bool:
-		return "boolean"
-	case reflect.Int64:
-		return "integer"
-	case reflect.String:
-		return "string"
-	case reflect.Slice:
-		return "array"
-	default:
-		return "object"
-	}
-}
-
 func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 	fields, err := req.AllFields()
 	if err != nil {
@@ -98,9 +82,7 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 				Name:     q,
 				In:       "query",
 				Required: field.Self.Tag.Get("required") == "true",
-				Schema: schemaInfo{
-					Type: gettype(field.Self.Type),
-				},
+				Schema:   genschemainfo(field.Self.Type),
 			})
 			continue
 		}
@@ -109,7 +91,7 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 				Name:     p,
 				In:       "path",
 				Required: true,
-				Schema:   schemaInfo{Type: "string"},
+				Schema:   &schemaInfo{Type: "string"},
 			})
 			continue
 		}
@@ -147,10 +129,11 @@ func genschemainfo(cur reflect.Type) *schemaInfo {
 			}
 			v := field.Name
 			if j := field.Tag.Get("json"); j != "" {
+				j = strings.Replace(j, ",omitempty", "", 1)
 				if j == "-" {
 					continue
 				}
-				v = strings.Replace(j, ",omitempty", "", 1)
+				v = j
 			}
 			once.Do(initmap)
 			sinfo.Properties[v] = genschemainfo(field.Type)
@@ -159,74 +142,18 @@ func genschemainfo(cur reflect.Type) *schemaInfo {
 	case reflect.Interface:
 		return &schemaInfo{Type: "object"}
 	default:
-		log.Fatalf("unsupported type: %+v", cur)
-		return nil
+		panic("unsupported type")
 	}
 }
 
 func genrequestbody(req *reflectx.TypeValueInfo) *bodyInfo {
 	sinfo := genschemainfo(req.TypeInfo())
 	return &bodyInfo{Content: &contentInfo{JSON: &jsonInfo{Schema: sinfo}}}
-	/*
-		fields, err := req.AllFields()
-		if err != nil {
-			return nil
-		}
-		sinfo := &schemaInfo{Type: "object", Properties: make(map[string]propertyInfo)}
-		out := &bodyInfo{Content: &contentInfo{JSON: &jsonInfo{Schema: sinfo}}}
-		for _, field := range fields {
-			if q := field.Self.Tag.Get("query"); q != "" {
-				continue
-			}
-			if p := field.Self.Tag.Get("path"); p != "" {
-				continue
-			}
-			v := field.Self.Name
-			if j := field.Self.Tag.Get("json"); j != "" {
-				if j == "-" {
-					continue
-				}
-				v = strings.Replace(j, ",omitempty", "", 1)
-			}
-			pt := gettype(field.Self.Type)
-			sinfo.Properties[v] = propertyInfo{
-				Type:  pt,
-				Items: genitems(field),
-			}
-		}
-		return out
-	*/
 }
 
 func genresponsebody(req *reflectx.TypeValueInfo) *contentInfo {
 	sinfo := genschemainfo(req.TypeInfo())
 	return &contentInfo{JSON: &jsonInfo{Schema: sinfo}}
-	/*
-		fields, err := req.AllFields()
-		if err != nil {
-			// TODO(bassosimone): we don't support map[string]interface{} responses;
-			// the catch is that we should always generate a schema dynamically from
-			// the object that we're currently serializing.
-			return nil
-		}
-		sinfo := &schemaInfo{Type: "object", Properties: make(map[string]propertyInfo)}
-		out := &contentInfo{JSON: &jsonInfo{Schema: sinfo}}
-		for _, field := range fields {
-			v := field.Self.Name
-			if j := field.Self.Tag.Get("json"); j != "" {
-				if j == "-" {
-					continue
-				}
-				v = strings.Replace(j, ",omitempty", "", 1)
-			}
-			pt := gettype(field.Self.Type)
-			sinfo.Properties[v] = propertyInfo{
-				Type:  pt,
-				Items: genitems(field),
-			}
-		}
-		return out
-	*/
 }
 
 func genpath(up *apimodel.URLPath) string {
@@ -244,7 +171,7 @@ func main() {
 		OpenAPI: "3.0.0",
 		Info: apiInfo{
 			Title:   "OONI API specification",
-			Version: "2021.01.30",
+			Version: "2021.01.31",
 		},
 		Servers: []serverInfo{{
 			URL: "https://api.ooni.io/",
