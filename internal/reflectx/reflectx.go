@@ -34,6 +34,11 @@ func NewTypeValueInfo(in interface{}) (*TypeValueInfo, error) {
 	return &TypeValueInfo{typeInfo: typeInfo, valueInfo: &valueInfo}, nil
 }
 
+// TypeInfo returns info about the type
+func (si *TypeValueInfo) TypeInfo() reflect.Type {
+	return si.typeInfo
+}
+
 // Must fails if we cannot construct a TypeValueInfo
 func Must(si *TypeValueInfo, err error) *TypeValueInfo {
 	fatalx.OnError(err, "NewTypeValueInfo failed")
@@ -49,6 +54,20 @@ func (si TypeValueInfo) TypeName() string {
 type FieldInfo struct {
 	Self  *reflect.StructField
 	Value *reflect.Value
+}
+
+// AllFields returns all fields.
+func (si TypeValueInfo) AllFields() ([]*FieldInfo, error) {
+	if si.typeInfo.Kind() != reflect.Struct {
+		return nil, ErrNotStruct
+	}
+	var out []*FieldInfo
+	for idx := 0; idx < si.typeInfo.NumField(); idx++ {
+		fieldType := si.typeInfo.Field(idx)
+		fieldValue := si.valueInfo.Field(idx)
+		out = append(out, &FieldInfo{Self: &fieldType, Value: &fieldValue})
+	}
+	return out, nil
 }
 
 // AllFieldsWithTag returns all fields with a given tag name.
