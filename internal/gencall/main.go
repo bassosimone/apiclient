@@ -97,7 +97,7 @@ func main() {
 	fmtx.Fprint(filep, "\t\"net/http\"\n")
 	fmtx.Fprint(filep, ")\n\n")
 
-	fmtx.Fprint(filep, "//go:generate go run ./internal/genapi/...\n\n")
+	fmtx.Fprint(filep, "//go:generate go run ./internal/gencall/...\n\n")
 
 	for _, descr := range apimodel.Descriptors {
 		genapi(filep, &descr)

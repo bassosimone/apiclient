@@ -38,3 +38,8 @@ var (
 	ErrEmptyField      = errors.New("apiclient: empty field")
 	ErrEmptyToken      = errors.New("apiclient: empty auth token")
 )
+
+// Swagger returns the API swagger v2.0 as a serialized JSON.
+func Swagger() string {
+	return swagger
+}
