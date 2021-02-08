@@ -12,10 +12,11 @@ type URLPath struct {
 
 // Descriptor is an API descriptor.
 type Descriptor struct {
-	Method   string
-	URLPath  URLPath
-	Request  interface{}
-	Response interface{}
+	Method        string
+	URLPath       URLPath
+	Request       interface{}
+	Response      interface{}
+	RequiresLogin bool
 }
 
 // Descriptors contains all descriptors.
@@ -50,15 +51,17 @@ var Descriptors = []Descriptor{{
 	Request:  datamodel.TestHelpersRequest{},
 	Response: datamodel.TestHelpersResponse{},
 }, {
-	Method:   "GET",
-	URLPath:  URLPath{Value: "/api/v1/test-list/psiphon-config"},
-	Request:  datamodel.PsiphonConfigRequest{},
-	Response: datamodel.PsiphonConfigResponse{},
+	Method:        "GET",
+	URLPath:       URLPath{Value: "/api/v1/test-list/psiphon-config"},
+	Request:       datamodel.PsiphonConfigRequest{},
+	Response:      datamodel.PsiphonConfigResponse{},
+	RequiresLogin: true,
 }, {
-	Method:   "GET",
-	URLPath:  URLPath{Value: "/api/v1/test-list/tor-targets"},
-	Request:  datamodel.TorTargetsRequest{},
-	Response: datamodel.TorTargetsResponse{},
+	Method:        "GET",
+	URLPath:       URLPath{Value: "/api/v1/test-list/tor-targets"},
+	Request:       datamodel.TorTargetsRequest{},
+	Response:      datamodel.TorTargetsResponse{},
+	RequiresLogin: true,
 }, {
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-list/urls"},
