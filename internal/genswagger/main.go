@@ -29,15 +29,15 @@ func genparamtype(t reflect.Type) string {
 	}
 }
 
-func genparams(req *reflectx.TypeValueInfo) []openapi.Parameter {
+func genparams(req *reflectx.TypeValueInfo) []*openapi.Parameter {
 	fields, err := req.AllFields()
 	if err != nil {
 		return nil
 	}
-	var out []openapi.Parameter
+	var out []*openapi.Parameter
 	for _, field := range fields {
 		if q := field.Self.Tag.Get("query"); q != "" {
-			out = append(out, openapi.Parameter{
+			out = append(out, &openapi.Parameter{
 				Name:     q,
 				In:       "query",
 				Required: field.Self.Tag.Get("required") == "true",
@@ -46,7 +46,7 @@ func genparams(req *reflectx.TypeValueInfo) []openapi.Parameter {
 			continue
 		}
 		if p := field.Self.Tag.Get("path"); p != "" {
-			out = append(out, openapi.Parameter{
+			out = append(out, &openapi.Parameter{
 				Name:     p,
 				In:       "path",
 				Required: true,
@@ -148,7 +148,7 @@ func main() {
 		resp := reflectx.Must(reflectx.NewTypeValueInfo(descr.Response))
 		rtinfo.Parameters = genparams(req)
 		if descr.Method != "GET" {
-			rtinfo.Parameters = append(rtinfo.Parameters, openapi.Parameter{
+			rtinfo.Parameters = append(rtinfo.Parameters, &openapi.Parameter{
 				Name:   "body",
 				In:     "body",
 				Schema: genschemainfo(req.TypeInfo()),

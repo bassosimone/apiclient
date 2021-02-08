@@ -21,8 +21,8 @@ type Parameter struct {
 
 // Body describes a response body
 type Body struct {
-	Description string  `json:"description,omitempty"`
-	Schema      *Schema `json:"schema"`
+	Description interface{} `json:"description,omitempty"`
+	Schema      *Schema     `json:"schema"`
 }
 
 // Responses describes the possible responses
@@ -32,10 +32,10 @@ type Responses struct {
 
 // RoundTrip describes an HTTP round trip with a given method and path
 type RoundTrip struct {
-	Consumes   []string    `json:"consumes,omitempty"`
-	Produces   []string    `json:"produces,omitempty"`
-	Parameters []Parameter `json:"parameters,omitempty"`
-	Responses  *Responses  `json:"responses,omitempty"`
+	Consumes   []string     `json:"consumes,omitempty"`
+	Produces   []string     `json:"produces,omitempty"`
+	Parameters []*Parameter `json:"parameters,omitempty"`
+	Responses  *Responses   `json:"responses,omitempty"`
 }
 
 // Path describes a path served by the API
