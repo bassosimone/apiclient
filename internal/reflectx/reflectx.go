@@ -9,13 +9,13 @@ import (
 	"github.com/bassosimone/apiclient/internal/fatalx"
 )
 
-// This package returns the following errors.
+// Errors defined by this package.
 var (
 	ErrNilPointer = errors.New("reflectx: nil pointer")
 	ErrNotStruct  = errors.New("reflectx: not a struct")
 )
 
-// TypeValueInfo contains info about a type
+// TypeValueInfo contains info about a type and the corresponding value.
 type TypeValueInfo struct {
 	typeInfo  reflect.Type
 	valueInfo *reflect.Value

@@ -30,7 +30,7 @@ package apiclient
 
 import "errors"
 
-// This package defines the following errors. In addition to these errors, this
+// Errors defined by this package. In addition to these errors, this
 // package may of course return any other stdlib specific error.
 var (
 	ErrHTTPFailure     = errors.New("apiclient: http request failed")
