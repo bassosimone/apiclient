@@ -23,6 +23,9 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tif resp.StatusCode != 200 {\n")
+	// TODO(bassosimone): the following line is mistakenly triggering a warning
+	// because Go things that the %d should be used by Fprint. This is not the
+	// case, but we should refactor to avoid the warning.
 	fmtx.Fprint(filep, "\t\treturn nil, fmt.Errorf(\"%w: %d\", ErrHTTPFailure, resp.StatusCode)\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tdefer resp.Body.Close()\n")

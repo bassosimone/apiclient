@@ -2,9 +2,9 @@ package datamodel
 
 // URLSRequest is the URLS request.
 type URLSRequest struct {
-	Categories  string `query:"categories"`
-	CountryCode string `query:"country_code"`
-	Limit       int64  `query:"limit"`
+	CategoryCodes string `query:"category_codes"`
+	CountryCode   string `query:"country_code"`
+	Limit         int64  `query:"limit"`
 }
 
 // URLSResponse is the URLS response.

@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "title": "OONI API specification",
-        "version": "0.20210208.2081802"
+        "version": "0.20210208.2103719"
     },
     "host": "api.ooni.io",
     "basePath": "/",
@@ -372,7 +372,7 @@
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "categories",
+                        "name": "category_codes",
                         "type": "string"
                     },
                     {
