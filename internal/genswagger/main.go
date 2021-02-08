@@ -15,39 +15,23 @@ import (
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
-type apiInfo struct {
-	Title   string `json:"title"`
-	Version string `json:"version"`
-}
-
-type serverInfo struct {
-	URL string `json:"url"`
-}
-
 type schemaInfo struct {
-	Type       string                 `json:"type"`
 	Properties map[string]*schemaInfo `json:"properties,omitempty"`
 	Items      *schemaInfo            `json:"items,omitempty"`
+	Type       string                 `json:"type"`
 }
 
 type parameterInfo struct {
-	Name     string      `json:"name"`
 	In       string      `json:"in"`
-	Required bool        `json:"required"`
-	Schema   *schemaInfo `json:"schema"`
-}
-
-type jsonInfo struct {
-	Schema *schemaInfo `json:"schema"`
-}
-
-type contentInfo struct {
-	JSON *jsonInfo `json:"application/json,omitempty"`
+	Name     string      `json:"name"`
+	Required bool        `json:"required,omitempty"`
+	Schema   *schemaInfo `json:"schema,omitempty"`
+	Type     string      `json:"type,omitempty"`
 }
 
 type bodyInfo struct {
-	Description string       `json:"description,omitempty"`
-	Content     *contentInfo `json:"content,omitempty"`
+	Description string      `json:"description,omitempty"`
+	Schema      *schemaInfo `json:"schema"`
 }
 
 type responsesInfo struct {
@@ -55,9 +39,10 @@ type responsesInfo struct {
 }
 
 type roundTripInfo struct {
-	Parameters  []parameterInfo `json:"parameters,omitempty"`
-	RequestBody *bodyInfo       `json:"requestBody,omitempty"`
-	Responses   *responsesInfo  `json:"responses,omitempty"`
+	Consumes   []string        `json:"consumes,omitempty"`
+	Produces   []string        `json:"produces,omitempty"`
+	Parameters []parameterInfo `json:"parameters,omitempty"`
+	Responses  *responsesInfo  `json:"responses,omitempty"`
 }
 
 type pathInfo struct {
@@ -65,11 +50,31 @@ type pathInfo struct {
 	Post *roundTripInfo `json:"post,omitempty"`
 }
 
+type apiInfo struct {
+	Title   string `json:"title"`
+	Version string `json:"version"`
+}
+
 type swagger struct {
-	OpenAPI string               `json:"openapi"`
-	Info    apiInfo              `json:"info"`
-	Servers []serverInfo         `json:"servers"`
-	Paths   map[string]*pathInfo `json:"paths"`
+	Swagger  string               `json:"swagger"`
+	Info     apiInfo              `json:"info"`
+	Host     string               `json:"host"`
+	BasePath string               `json:"basePath"`
+	Schemes  []string             `json:"schemes"`
+	Paths    map[string]*pathInfo `json:"paths"`
+}
+
+func genparamtype(t reflect.Type) string {
+	switch t.Kind() {
+	case reflect.String:
+		return "string"
+	case reflect.Bool:
+		return "boolean"
+	case reflect.Int64:
+		return "integer"
+	default:
+		panic("unsupported type")
+	}
 }
 
 func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
@@ -84,7 +89,7 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 				Name:     q,
 				In:       "query",
 				Required: field.Self.Tag.Get("required") == "true",
-				Schema:   genschemainfo(field.Self.Type),
+				Type:     genparamtype(field.Self.Type),
 			})
 			continue
 		}
@@ -93,7 +98,7 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 				Name:     p,
 				In:       "path",
 				Required: true,
-				Schema:   &schemaInfo{Type: "string"},
+				Type:     genparamtype(field.Self.Type),
 			})
 			continue
 		}
@@ -148,16 +153,6 @@ func genschemainfo(cur reflect.Type) *schemaInfo {
 	}
 }
 
-func genrequestbody(req *reflectx.TypeValueInfo) *bodyInfo {
-	sinfo := genschemainfo(req.TypeInfo())
-	return &bodyInfo{Content: &contentInfo{JSON: &jsonInfo{Schema: sinfo}}}
-}
-
-func genresponsebody(req *reflectx.TypeValueInfo) *contentInfo {
-	sinfo := genschemainfo(req.TypeInfo())
-	return &contentInfo{JSON: &jsonInfo{Schema: sinfo}}
-}
-
 func genpath(up *apimodel.URLPath) string {
 	if up.InSwagger != "" {
 		return up.InSwagger
@@ -174,35 +169,42 @@ func genversion() string {
 
 func main() {
 	swagger := swagger{
-		OpenAPI: "3.0.0",
+		Swagger: "2.0",
 		Info: apiInfo{
 			Title:   "OONI API specification",
 			Version: genversion(),
 		},
-		Servers: []serverInfo{{
-			URL: "https://api.ooni.io/",
-		}},
-		Paths: make(map[string]*pathInfo),
+		Host:     "api.ooni.io",
+		BasePath: "/",
+		Schemes:  []string{"https"},
+		Paths:    make(map[string]*pathInfo),
 	}
 	for _, descr := range apimodel.Descriptors {
 		pinfo := &pathInfo{}
 		swagger.Paths[genpath(&descr.URLPath)] = pinfo
-		rtinfo := &roundTripInfo{}
+		rtinfo := &roundTripInfo{
+			Produces: []string{"application/json"},
+		}
 		switch descr.Method {
 		case "GET":
 			pinfo.Get = rtinfo
 		case "POST":
+			rtinfo.Consumes = append(rtinfo.Consumes, "application/json")
 			pinfo.Post = rtinfo
 		}
 		req := reflectx.Must(reflectx.NewTypeValueInfo(descr.Request))
 		resp := reflectx.Must(reflectx.NewTypeValueInfo(descr.Response))
 		rtinfo.Parameters = genparams(req)
 		if descr.Method != "GET" {
-			rtinfo.RequestBody = genrequestbody(req)
+			rtinfo.Parameters = append(rtinfo.Parameters, parameterInfo{
+				Name:   "body",
+				In:     "body",
+				Schema: genschemainfo(req.TypeInfo()),
+			})
 		}
 		rtinfo.Responses = &responsesInfo{Successful: bodyInfo{
 			Description: "all good",
-			Content:     genresponsebody(resp),
+			Schema:      genschemainfo(resp.TypeInfo()),
 		}}
 	}
 	data, err := json.MarshalIndent(swagger, "", "    ")

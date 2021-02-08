@@ -1,39 +1,36 @@
 {
-    "openapi": "3.0.0",
+    "swagger": "2.0",
     "info": {
         "title": "OONI API specification",
-        "version": "0.20210131.1004511"
+        "version": "0.20210208.2073548"
     },
-    "servers": [
-        {
-            "url": "https://api.ooni.io/"
-        }
+    "host": "api.ooni.io",
+    "basePath": "/",
+    "schemes": [
+        "https"
     ],
     "paths": {
         "/api/_/check_report_id": {
             "get": {
+                "produces": [
+                    "application/json"
+                ],
                 "parameters": [
                     {
                         "name": "report_id",
                         "in": "query",
                         "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "found": {
-                                            "type": "boolean"
-                                        }
-                                    }
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "found": {
+                                    "type": "boolean"
                                 }
                             }
                         }
@@ -43,373 +40,71 @@
         },
         "/api/v1/check-in": {
             "post": {
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "charging": {
-                                        "type": "boolean"
-                                    },
-                                    "on_wifi": {
-                                        "type": "boolean"
-                                    },
-                                    "platform": {
-                                        "type": "string"
-                                    },
-                                    "probe_asn": {
-                                        "type": "string"
-                                    },
-                                    "probe_cc": {
-                                        "type": "string"
-                                    },
-                                    "run_type": {
-                                        "type": "string"
-                                    },
-                                    "software_name": {
-                                        "type": "string"
-                                    },
-                                    "software_version": {
-                                        "type": "string"
-                                    },
-                                    "web_connectivity": {
-                                        "type": "object",
-                                        "properties": {
-                                            "category_codes": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "web_connectivity": {
-                                            "type": "object",
-                                            "properties": {
-                                                "report_id": {
-                                                    "type": "string"
-                                                },
-                                                "urls": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "category_code": {
-                                                                "type": "string"
-                                                            },
-                                                            "country_code": {
-                                                                "type": "string"
-                                                            },
-                                                            "url": {
-                                                                "type": "string"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/login": {
-            "post": {
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "password": {
-                                        "type": "string"
-                                    },
-                                    "username": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "expire": {
-                                            "type": "string"
-                                        },
-                                        "token": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/measurement_meta": {
-            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
                 "parameters": [
                     {
-                        "name": "report_id",
-                        "in": "query",
-                        "required": true,
+                        "name": "body",
+                        "in": "body",
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "full",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "input",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "charging": {
+                                    "type": "boolean"
+                                },
+                                "on_wifi": {
+                                    "type": "boolean"
+                                },
+                                "platform": {
+                                    "type": "string"
+                                },
+                                "probe_asn": {
+                                    "type": "string"
+                                },
+                                "probe_cc": {
+                                    "type": "string"
+                                },
+                                "run_type": {
+                                    "type": "string"
+                                },
+                                "software_name": {
+                                    "type": "string"
+                                },
+                                "software_version": {
+                                    "type": "string"
+                                },
+                                "web_connectivity": {
+                                    "type": "object",
+                                    "properties": {
+                                        "category_codes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "web_connectivity": {
                                     "type": "object",
                                     "properties": {
-                                        "anomaly": {
-                                            "type": "boolean"
-                                        },
-                                        "category_code": {
-                                            "type": "string"
-                                        },
-                                        "confirmed": {
-                                            "type": "boolean"
-                                        },
-                                        "failure": {
-                                            "type": "boolean"
-                                        },
-                                        "input": {
-                                            "type": "string"
-                                        },
-                                        "measurement_start_time": {
-                                            "type": "string"
-                                        },
-                                        "probe_asn": {
-                                            "type": "integer"
-                                        },
-                                        "probe_cc": {
-                                            "type": "string"
-                                        },
-                                        "raw_measurement": {
-                                            "type": "string"
-                                        },
                                         "report_id": {
                                             "type": "string"
                                         },
-                                        "scores": {
-                                            "type": "string"
-                                        },
-                                        "test_name": {
-                                            "type": "string"
-                                        },
-                                        "test_start_time": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/register": {
-            "post": {
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "available_bandwidth": {
-                                        "type": "string"
-                                    },
-                                    "device_token": {
-                                        "type": "string"
-                                    },
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "network_type": {
-                                        "type": "string"
-                                    },
-                                    "platform": {
-                                        "type": "string"
-                                    },
-                                    "probe_asn": {
-                                        "type": "string"
-                                    },
-                                    "probe_cc": {
-                                        "type": "string"
-                                    },
-                                    "probe_family": {
-                                        "type": "string"
-                                    },
-                                    "probe_timezone": {
-                                        "type": "string"
-                                    },
-                                    "software_name": {
-                                        "type": "string"
-                                    },
-                                    "software_version": {
-                                        "type": "string"
-                                    },
-                                    "supported_tests": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "client_id": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/test-helpers": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/test-list/psiphon-config": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/test-list/tor-targets": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/test-list/urls": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "categories",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "country_code",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "results": {
+                                        "urls": {
                                             "type": "array",
                                             "items": {
                                                 "type": "object",
@@ -434,60 +129,281 @@
                 }
             }
         },
-        "/report": {
+        "/api/v1/login": {
             "post": {
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "data_format_version": {
-                                        "type": "string"
-                                    },
-                                    "format": {
-                                        "type": "string"
-                                    },
-                                    "probe_asn": {
-                                        "type": "string"
-                                    },
-                                    "probe_cc": {
-                                        "type": "string"
-                                    },
-                                    "software_name": {
-                                        "type": "string"
-                                    },
-                                    "software_version": {
-                                        "type": "string"
-                                    },
-                                    "test_name": {
-                                        "type": "string"
-                                    },
-                                    "test_start_time": {
-                                        "type": "string"
-                                    },
-                                    "test_version": {
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "password": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "expire": {
+                                    "type": "string"
+                                },
+                                "token": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/measurement_meta": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "report_id",
+                        "in": "query",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "full",
+                        "in": "query",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "input",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "anomaly": {
+                                    "type": "boolean"
+                                },
+                                "category_code": {
+                                    "type": "string"
+                                },
+                                "confirmed": {
+                                    "type": "boolean"
+                                },
+                                "failure": {
+                                    "type": "boolean"
+                                },
+                                "input": {
+                                    "type": "string"
+                                },
+                                "measurement_start_time": {
+                                    "type": "string"
+                                },
+                                "probe_asn": {
+                                    "type": "integer"
+                                },
+                                "probe_cc": {
+                                    "type": "string"
+                                },
+                                "raw_measurement": {
+                                    "type": "string"
+                                },
+                                "report_id": {
+                                    "type": "string"
+                                },
+                                "scores": {
+                                    "type": "string"
+                                },
+                                "test_name": {
+                                    "type": "string"
+                                },
+                                "test_start_time": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/register": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "available_bandwidth": {
+                                    "type": "string"
+                                },
+                                "device_token": {
+                                    "type": "string"
+                                },
+                                "language": {
+                                    "type": "string"
+                                },
+                                "network_type": {
+                                    "type": "string"
+                                },
+                                "platform": {
+                                    "type": "string"
+                                },
+                                "probe_asn": {
+                                    "type": "string"
+                                },
+                                "probe_cc": {
+                                    "type": "string"
+                                },
+                                "probe_family": {
+                                    "type": "string"
+                                },
+                                "probe_timezone": {
+                                    "type": "string"
+                                },
+                                "software_name": {
+                                    "type": "string"
+                                },
+                                "software_version": {
+                                    "type": "string"
+                                },
+                                "supported_tests": {
+                                    "type": "array",
+                                    "items": {
                                         "type": "string"
                                     }
                                 }
                             }
                         }
                     }
-                },
+                ],
                 "responses": {
                     "200": {
                         "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "report_id": {
-                                            "type": "string"
-                                        },
-                                        "supported_formats": {
-                                            "type": "array",
-                                            "items": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "client_id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/test-helpers": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/test-list/psiphon-config": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/test-list/tor-targets": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/test-list/urls": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "categories",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "country_code",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "results": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "category_code": {
+                                                "type": "string"
+                                            },
+                                            "country_code": {
+                                                "type": "string"
+                                            },
+                                            "url": {
                                                 "type": "string"
                                             }
                                         }
@@ -499,44 +415,109 @@
                 }
             }
         },
-        "/report/{report_id}": {
+        "/report": {
             "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
                 "parameters": [
                     {
-                        "name": "report_id",
-                        "in": "path",
-                        "required": true,
+                        "name": "body",
+                        "in": "body",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "properties": {
+                                "data_format_version": {
+                                    "type": "string"
+                                },
+                                "format": {
+                                    "type": "string"
+                                },
+                                "probe_asn": {
+                                    "type": "string"
+                                },
+                                "probe_cc": {
+                                    "type": "string"
+                                },
+                                "software_name": {
+                                    "type": "string"
+                                },
+                                "software_version": {
+                                    "type": "string"
+                                },
+                                "test_name": {
+                                    "type": "string"
+                                },
+                                "test_start_time": {
+                                    "type": "string"
+                                },
+                                "test_version": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "content": {
-                                        "type": "object"
-                                    },
-                                    "format": {
+                "responses": {
+                    "200": {
+                        "description": "all good",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "report_id": {
+                                    "type": "string"
+                                },
+                                "supported_formats": {
+                                    "type": "array",
+                                    "items": {
                                         "type": "string"
                                     }
                                 }
                             }
                         }
                     }
-                },
+                }
+            }
+        },
+        "/report/{report_id}": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "report_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "object"
+                                },
+                                "format": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "all good",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
