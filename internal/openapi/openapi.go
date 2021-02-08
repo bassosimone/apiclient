@@ -1,4 +1,4 @@
-// Package openapi contains the swagger 2.0 data model
+// Package openapi contains data structures for Swagger v2.0.
 package openapi
 
 // Schema is the schema of a specific parameter or

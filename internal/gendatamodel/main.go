@@ -1,4 +1,4 @@
-// This script generates datamodel.go
+// Command gendatamodel generates datamodel.go.
 package main
 
 import (

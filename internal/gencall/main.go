@@ -1,4 +1,4 @@
-// This script generates call.go
+// Command gencall generates call.go.
 package main
 
 import (

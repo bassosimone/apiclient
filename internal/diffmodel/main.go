@@ -1,4 +1,13 @@
-// Command diffmodel compares our model and the server model.
+// Command diffmodel compares our model and the server model. It emits
+// a diff of the changes on the standard output. If there are no changes,
+// this command exits with the zero exit code. Otherwise it exits with
+// a nonzero exit code, thus signaling that there is a mismatch.
+//
+// Continuous integration
+//
+// The tests of this package check whether the client model and the
+// server model have diverged. Of course, the test fails if they have
+// diverged and succeeds otherwise.
 package main
 
 import (
@@ -10,6 +19,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bassosimone/apiclient"
 	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/openapi"
 	"github.com/hexops/gotextdiff"
@@ -35,9 +45,7 @@ func getServerModel() *openapi.Swagger {
 }
 
 func getClientModel(clientFile string) *openapi.Swagger {
-	data, err := ioutil.ReadFile(clientFile)
-	fatalx.OnError(err, "ioutil.ReadFile failed")
-	return makeModel(data)
+	return makeModel([]byte(apiclient.Swagger()))
 }
 
 func simplifyRoundTrip(rt *openapi.RoundTrip) {

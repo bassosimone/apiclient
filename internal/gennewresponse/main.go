@@ -1,4 +1,4 @@
-// This script generates newresponse.go.
+// Command gennewresponse generates newresponse.go.
 package main
 
 import (

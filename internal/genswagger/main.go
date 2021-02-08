@@ -1,4 +1,4 @@
-// This script generates swagger.json
+// Command genswagger generates swagger.go.
 package main
 
 import (

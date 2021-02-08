@@ -1,4 +1,4 @@
-// This script generates newrequest.go
+// Command gennewrequest generates newrequest.go.
 package main
 
 import (
