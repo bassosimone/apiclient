@@ -11,58 +11,10 @@ import (
 	"github.com/bassosimone/apiclient/internal/apimodel"
 	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/fmtx"
+	"github.com/bassosimone/apiclient/internal/openapi"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
-
-type schemaInfo struct {
-	Properties map[string]*schemaInfo `json:"properties,omitempty"`
-	Items      *schemaInfo            `json:"items,omitempty"`
-	Type       string                 `json:"type"`
-}
-
-type parameterInfo struct {
-	In       string      `json:"in"`
-	Name     string      `json:"name"`
-	Required bool        `json:"required,omitempty"`
-	Schema   *schemaInfo `json:"schema,omitempty"`
-	Type     string      `json:"type,omitempty"`
-}
-
-type bodyInfo struct {
-	Description string      `json:"description,omitempty"`
-	Schema      *schemaInfo `json:"schema"`
-}
-
-type responsesInfo struct {
-	Successful bodyInfo `json:"200"`
-}
-
-type roundTripInfo struct {
-	Consumes   []string        `json:"consumes,omitempty"`
-	Produces   []string        `json:"produces,omitempty"`
-	Parameters []parameterInfo `json:"parameters,omitempty"`
-	Responses  *responsesInfo  `json:"responses,omitempty"`
-}
-
-type pathInfo struct {
-	Get  *roundTripInfo `json:"get,omitempty"`
-	Post *roundTripInfo `json:"post,omitempty"`
-}
-
-type apiInfo struct {
-	Title   string `json:"title"`
-	Version string `json:"version"`
-}
-
-type swagger struct {
-	Swagger  string               `json:"swagger"`
-	Info     apiInfo              `json:"info"`
-	Host     string               `json:"host"`
-	BasePath string               `json:"basePath"`
-	Schemes  []string             `json:"schemes"`
-	Paths    map[string]*pathInfo `json:"paths"`
-}
 
 func genparamtype(t reflect.Type) string {
 	switch t.Kind() {
@@ -77,15 +29,15 @@ func genparamtype(t reflect.Type) string {
 	}
 }
 
-func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
+func genparams(req *reflectx.TypeValueInfo) []openapi.Parameter {
 	fields, err := req.AllFields()
 	if err != nil {
 		return nil
 	}
-	var out []parameterInfo
+	var out []openapi.Parameter
 	for _, field := range fields {
 		if q := field.Self.Tag.Get("query"); q != "" {
-			out = append(out, parameterInfo{
+			out = append(out, openapi.Parameter{
 				Name:     q,
 				In:       "query",
 				Required: field.Self.Tag.Get("required") == "true",
@@ -94,7 +46,7 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 			continue
 		}
 		if p := field.Self.Tag.Get("path"); p != "" {
-			out = append(out, parameterInfo{
+			out = append(out, openapi.Parameter{
 				Name:     p,
 				In:       "path",
 				Required: true,
@@ -106,25 +58,25 @@ func genparams(req *reflectx.TypeValueInfo) []parameterInfo {
 	return out
 }
 
-func genschemainfo(cur reflect.Type) *schemaInfo {
+func genschemainfo(cur reflect.Type) *openapi.Schema {
 	switch cur.Kind() {
 	case reflect.String:
-		return &schemaInfo{Type: "string"}
+		return &openapi.Schema{Type: "string"}
 	case reflect.Bool:
-		return &schemaInfo{Type: "boolean"}
+		return &openapi.Schema{Type: "boolean"}
 	case reflect.Int64:
-		return &schemaInfo{Type: "integer"}
+		return &openapi.Schema{Type: "integer"}
 	case reflect.Slice:
-		return &schemaInfo{Type: "array", Items: genschemainfo(cur.Elem())}
+		return &openapi.Schema{Type: "array", Items: genschemainfo(cur.Elem())}
 	case reflect.Map:
-		return &schemaInfo{Type: "object"}
+		return &openapi.Schema{Type: "object"}
 	case reflect.Ptr:
 		return genschemainfo(cur.Elem())
 	case reflect.Struct:
-		sinfo := &schemaInfo{Type: "object"}
+		sinfo := &openapi.Schema{Type: "object"}
 		var once sync.Once
 		initmap := func() {
-			sinfo.Properties = make(map[string]*schemaInfo)
+			sinfo.Properties = make(map[string]*openapi.Schema)
 		}
 		for idx := 0; idx < cur.NumField(); idx++ {
 			field := cur.Field(idx)
@@ -147,7 +99,7 @@ func genschemainfo(cur reflect.Type) *schemaInfo {
 		}
 		return sinfo
 	case reflect.Interface:
-		return &schemaInfo{Type: "object"}
+		return &openapi.Schema{Type: "object"}
 	default:
 		panic("unsupported type")
 	}
@@ -168,21 +120,21 @@ func genversion() string {
 }
 
 func main() {
-	swagger := swagger{
+	swagger := openapi.Swagger{
 		Swagger: "2.0",
-		Info: apiInfo{
+		Info: openapi.API{
 			Title:   "OONI API specification",
 			Version: genversion(),
 		},
 		Host:     "api.ooni.io",
 		BasePath: "/",
 		Schemes:  []string{"https"},
-		Paths:    make(map[string]*pathInfo),
+		Paths:    make(map[string]*openapi.Path),
 	}
 	for _, descr := range apimodel.Descriptors {
-		pinfo := &pathInfo{}
+		pinfo := &openapi.Path{}
 		swagger.Paths[genpath(&descr.URLPath)] = pinfo
-		rtinfo := &roundTripInfo{
+		rtinfo := &openapi.RoundTrip{
 			Produces: []string{"application/json"},
 		}
 		switch descr.Method {
@@ -196,13 +148,13 @@ func main() {
 		resp := reflectx.Must(reflectx.NewTypeValueInfo(descr.Response))
 		rtinfo.Parameters = genparams(req)
 		if descr.Method != "GET" {
-			rtinfo.Parameters = append(rtinfo.Parameters, parameterInfo{
+			rtinfo.Parameters = append(rtinfo.Parameters, openapi.Parameter{
 				Name:   "body",
 				In:     "body",
 				Schema: genschemainfo(req.TypeInfo()),
 			})
 		}
-		rtinfo.Responses = &responsesInfo{Successful: bodyInfo{
+		rtinfo.Responses = &openapi.Responses{Successful: openapi.Body{
 			Description: "all good",
 			Schema:      genschemainfo(resp.TypeInfo()),
 		}}
