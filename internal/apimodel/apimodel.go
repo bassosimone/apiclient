@@ -67,8 +67,8 @@ var Descriptors = []Descriptor{{
 }, {
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-list/urls"},
-	Request:  datamodel.URLSRequest{},
-	Response: datamodel.URLSResponse{},
+	Request:  datamodel.URLsRequest{},
+	Response: datamodel.URLsResponse{},
 }, {
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/report"},

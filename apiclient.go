@@ -4,12 +4,12 @@
 //
 // For each defined API Foobar, there is a structure called FoobarAPI. Instantiate
 // a new FoobarAPI structure. In most cases, the zero structure is already valid. In
-// some cases, you need to explicitly initialize the Auth token.
+// some cases, you need to explicitly initialize the auth token.
 //
 // You MAY reuse the same FoobarAPI structure to service multiple requests.
 //
-// Then, create and fill a FoobarRequest structure. Pass this structure along with
-// a valid context to FoobarAPI's Call method.
+// To call the API, create and fill a FoobarRequest structure. Pass this structure along
+// with a valid context to FoobarAPI's Call method.
 //
 // You will get back either an error (and a nil FoobarResponse instance) or a
 // valid FoobarResponse instance (and a nil error).
