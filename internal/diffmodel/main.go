@@ -27,6 +27,11 @@ import (
 	"github.com/hexops/gotextdiff/span"
 )
 
+const (
+	productionURL = "https://api.ooni.io/apispec_1.json"
+	testingURL    = "https://ams-pg-test.ooni.org/apispec_1.json"
+)
+
 func makeModel(data []byte) *openapi.Swagger {
 	var out openapi.Swagger
 	err := json.Unmarshal(data, &out)
@@ -35,8 +40,8 @@ func makeModel(data []byte) *openapi.Swagger {
 	return &openapi.Swagger{Paths: out.Paths}
 }
 
-func getServerModel() *openapi.Swagger {
-	resp, err := http.Get("https://api.ooni.io/apispec_1.json")
+func getServerModel(serverURL string) *openapi.Swagger {
+	resp, err := http.Get(serverURL)
 	fatalx.OnError(err, "http.Get failed")
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
@@ -116,9 +121,9 @@ func maybediff(key string, server, client *openapi.Path) int {
 	return len(diff)
 }
 
-func compare(clientFile string) int {
+func compare(clientFile, serverURL string) int {
 	var code int
-	serverModel, clientModel := getServerModel(), getClientModel(clientFile)
+	serverModel, clientModel := getServerModel(serverURL), getClientModel(clientFile)
 	for key := range serverModel.Paths {
 		if _, found := clientModel.Paths[key]; !found {
 			delete(serverModel.Paths, key)
@@ -132,5 +137,5 @@ func compare(clientFile string) int {
 }
 
 func main() {
-	os.Exit(compare("swagger.json"))
+	os.Exit(compare("swagger.json", productionURL))
 }

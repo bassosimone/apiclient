@@ -8,4 +8,6 @@ type SubmitMeasurementRequest struct {
 }
 
 // SubmitMeasurementResponse is the SubmitMeasurement response.
-type SubmitMeasurementResponse struct{}
+type SubmitMeasurementResponse struct {
+	MeasurementUID string `json:"measurement_uid"`
+}

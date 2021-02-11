@@ -7,5 +7,7 @@ type CheckReportIDRequest struct {
 
 // CheckReportIDResponse is the CheckReportID response.
 type CheckReportIDResponse struct {
-	Found bool `json:"found"`
+	Error string `json:"error"`
+	Found bool   `json:"found"`
+	V     int64  `json:"v"`
 }

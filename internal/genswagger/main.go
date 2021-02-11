@@ -149,9 +149,10 @@ func main() {
 		rtinfo.Parameters = genparams(req)
 		if descr.Method != "GET" {
 			rtinfo.Parameters = append(rtinfo.Parameters, &openapi.Parameter{
-				Name:   "body",
-				In:     "body",
-				Schema: genschemainfo(req.TypeInfo()),
+				Name:     "body",
+				In:       "body",
+				Required: true,
+				Schema:   genschemainfo(req.TypeInfo()),
 			})
 		}
 		rtinfo.Responses = &openapi.Responses{Successful: openapi.Body{

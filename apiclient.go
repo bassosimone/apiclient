@@ -23,6 +23,15 @@
 //
 // To regenerate all the definitions exported by this package.
 //
+// Continuous integration
+//
+// Running tests
+//
+//     go test ./...
+//
+// includes a check that verifies that we and the server are using the
+// same definition for the exchanged data structures.
+//
 // API documentation
 //
 // Please, refer to https://api.ooni.io/apidocs/ for more info.

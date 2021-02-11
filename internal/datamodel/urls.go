@@ -9,7 +9,13 @@ type URLsRequest struct {
 
 // URLsResponse is the URLs response.
 type URLsResponse struct {
-	Results []URLsResponseURL `json:"results"`
+	Metadata URLsMetadata      `json:"metadata"`
+	Results  []URLsResponseURL `json:"results"`
+}
+
+// URLsMetadata contains metadata in the URLs response.
+type URLsMetadata struct {
+	Count int64 `json:"count"`
 }
 
 // URLsResponseURL is a single URL in the URLs response.
