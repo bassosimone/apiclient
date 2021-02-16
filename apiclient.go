@@ -87,14 +87,16 @@ func NewStaticAuthorizer(token string) Authorizer {
 
 // Client is a client for the OONI API.
 type Client struct {
-	// BaseURL is the base URL for the OONI API.
+	// BaseURL is the base URL for the OONI API. If not set, we will
+	// use the default API-base-URL.
 	BaseURL string
 
 	// HTTPClient is the HTTP client to use. If not set, we will
 	// use the http.DefaultClient client.
 	HTTPClient HTTPClient
 
-	// UserAgent is the user agent for the OONI API.
+	// UserAgent is the user agent for the OONI API. If not set, we
+	// will send no User Agent to the server.
 	UserAgent string
 }
 

@@ -20,7 +20,7 @@ func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	if desc.RequiresLogin {
 		fmtx.Fprintf(filep, "\t\tAuthorizer: clnt,\n")
 	}
-	fmtx.Fprintf(filep, "\t\tBaseURL: clnt.BaseURL,\n")
+	fmtx.Fprintf(filep, "\t\tBaseURL: clnt.baseURL(),\n")
 	fmtx.Fprintf(filep, "\t\tHTTPClient: clnt.HTTPClient,\n")
 	fmtx.Fprintf(filep, "\t\tUserAgent: clnt.UserAgent,\n")
 	fmtx.Fprintf(filep, "\t}\n")
