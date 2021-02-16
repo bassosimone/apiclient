@@ -9,7 +9,7 @@ import (
 )
 
 func ExampleURLsAPI_Call() {
-	var api apiclient.URLsAPI
+	api := apiclient.NewURLsAPI(&apiclient.Client{})
 	request := &apiclient.URLsRequest{
 		CountryCode: "IT",
 		Limit:       14,
@@ -23,9 +23,7 @@ func ExampleURLsAPI_Call() {
 }
 
 func ExampleTorTargetsAPI_Call() {
-	api := apiclient.TorTargetsAPI{
-		Authorizer: apiclient.NewStaticAuthorizer("valid-token-here"),
-	}
+	api := apiclient.NewTorTargetsAPI(&apiclient.Client{})
 	request := &apiclient.TorTargetsRequest{}
 	ctx := context.Background()
 	response, err := api.Call(ctx, request)

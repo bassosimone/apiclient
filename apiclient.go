@@ -2,14 +2,19 @@
 //
 // Usage
 //
+// Create a Client instance. Even though the zero Client works, you most
+// likely want to fill in all its fields to customize its behavior.
+//
 // For each defined API Foobar, there is a structure called FoobarAPI. Instantiate
-// a new FoobarAPI structure. In most cases, the zero structure is already valid. In
-// some cases, you need to explicitly initialize the Authorizer.
+// a new FoobarAPI structure using NewFoobarAPI factor, which takes in input
+// a Client instance. This will register the Client as the Authorizer for the
+// given API. (As low-level alternative, instantiate the API directly.)
 //
-// You MAY reuse the same FoobarAPI structure to service multiple requests.
+// You MAY reuse the same FoobarAPI structure to service multiple requests. But
+// in general we expect you to create a new structure whenever you need one.
 //
-// To call the API, create and fill a FoobarRequest structure. Pass this structure along
-// with a valid context to FoobarAPI's Call method.
+// To call the API, create and fill a FoobarRequest structure. Pass this structure
+// along with a valid context to FoobarAPI's Call method.
 //
 // You will get back either an error (and a nil FoobarResponse instance) or a
 // valid FoobarResponse instance (and a nil error).
@@ -95,12 +100,33 @@ type Client struct {
 	// use the http.DefaultClient client.
 	HTTPClient HTTPClient
 
+	// KVStore is the key-value store to use. If not set, we will
+	// configure a memory-based, ephemeral key-value store.
+	KVStore KVStore
+
 	// UserAgent is the user agent for the OONI API. If not set, we
 	// will send no User Agent to the server.
 	UserAgent string
 }
 
 // MaybeRefreshToken implements Authorizer.MaybeRefreshToken.
+//
+// You typically do not call this method directly. Rather, you create
+// an API using NewFoobarAPI(c). This will register the client as
+// the Authorizer for the specified API.
+//
+// When invoked, this method will roughly do the following:
+//
+// 1. if we already have a valid token, just return it;
+//
+// 2. if we already have valid orchestra credentials, then
+// login in again so to refresh the token, then return the token;
+//
+// 3. otherwise, create a new account, and then login with
+// such an account, so we have a token to return.
+//
+// This implementation should be robust to a change in
+// the backend database where all logins are lost.
 func (c *Client) MaybeRefreshToken(ctx context.Context) (string, error) {
 	return c.maybeLogin(ctx)
 }
