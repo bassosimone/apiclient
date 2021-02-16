@@ -13,13 +13,34 @@ import (
 	"github.com/bassosimone/apiclient/internal/reflectx"
 )
 
-// TODO(bassosimone): factor code to generate the required fields
-
 func getapiame(in interface{}) string {
 	name := reflectx.Must(reflectx.NewTypeValueInfo(in)).TypeName()
 	name = strings.Replace(name, "Request", "", 1)
 	name = strings.Replace(name, "Response", "", 1)
 	return name
+}
+
+func genRequestAndMaybeMandatoryFields(filep osx.File, apiname string, req *reflectx.TypeValueInfo) {
+	fields, err := req.AllFieldsWithTag("required")
+	fatalx.OnError(err, "req.AllFieldsWithTag failed")
+	if len(fields) > 0 {
+		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
+		for _, field := range fields {
+			switch field.Self.Type.Kind() {
+			case reflect.String:
+				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
+			case reflect.Bool:
+				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
+			case reflect.Int64:
+				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
+			default:
+				panic("genTestWithHTTPErr: unsupported field type")
+			}
+		}
+		fmtx.Fprint(filep, "\t}\n")
+	} else {
+		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
+	}
 }
 
 func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
@@ -29,7 +50,8 @@ func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"\\t\", // invalid\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif err == nil || !strings.HasSuffix(err.Error(), \"invalid control character in URL\") {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -50,7 +72,8 @@ func genTestWithEmptyToken(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrEmptyToken) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -74,26 +97,7 @@ func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -117,7 +121,8 @@ func genTestMarshalErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "\t\t},\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -142,26 +147,7 @@ func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -185,26 +171,7 @@ func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrHTTPFailure) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -231,26 +198,7 @@ func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -280,26 +228,7 @@ func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "\t\t},\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
@@ -326,26 +255,7 @@ func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif err != nil{\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatal(err)\n")
@@ -376,26 +286,7 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
 	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrJSONLiteralNull) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
