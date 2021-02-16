@@ -29,7 +29,7 @@ func genapitype(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprintf(filep, "type %sAPI struct {\n", apiname)
 	fmtx.Fprint(filep, "\tBaseURL    string\n")
-	fmtx.Fprint(filep, "\tHTTPClient *http.Client\n")
+	fmtx.Fprint(filep, "\tHTTPClient HTTPClient\n")
 	if desc.RequiresLogin {
 		fmtx.Fprint(filep, "\tToken      string\n")
 	}

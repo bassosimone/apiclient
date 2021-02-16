@@ -37,7 +37,10 @@
 // Please, refer to https://api.ooni.io/apidocs/ for more info.
 package apiclient
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
 // Errors defined by this package. In addition to these errors, this
 // package may of course return any other stdlib specific error.
@@ -51,4 +54,9 @@ var (
 // Swagger returns the API swagger v2.0 as a serialized JSON.
 func Swagger() string {
 	return swagger
+}
+
+// HTTPClient is an HTTP client.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
