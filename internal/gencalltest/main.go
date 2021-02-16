@@ -297,6 +297,38 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
+func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	fields, err := req.AllFieldsWithTag("required")
+	fatalx.OnError(err, "req.AllFieldsWithTag failed")
+	if len(fields) < 1 {
+		return // nothing to test
+	}
+	apiname := getapiame(desc.Response)
+	fmtx.Fprintf(filep, "func Test%sMandatoryFields(t *testing.T) {\n", apiname)
+	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
+	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
+	fmtx.Fprint(filep, "\t}}\n")
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
+	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
+	}
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tctx := context.Background()\n")
+	fmtx.Fprintf(filep, "\treq := &%sRequest{} // deliberately empty\n", apiname)
+	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
+	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrEmptyField) {\n")
+	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif resp != nil {\n")
+	fmtx.Fprint(filep, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "}\n\n")
+}
+
 func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	genTestInvalidURL(filep, desc)
 	genTestWithEmptyToken(filep, desc)
@@ -308,6 +340,7 @@ func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	genTestWithUnmarshalFailure(filep, desc)
 	genTestRoundTrip(filep, desc)
 	genTestResponseLiteralNull(filep, desc)
+	genTestMandatoryFields(filep, desc)
 }
 
 func main() {

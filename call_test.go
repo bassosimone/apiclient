@@ -158,6 +158,26 @@ func TestCheckReportIDRoundTrip(t *testing.T) {
 	}
 }
 
+func TestCheckReportIDMandatoryFields(t *testing.T) {
+	clnt := &MockableHTTPClient{Resp: &http.Response{
+		StatusCode: 200,
+		Body:       &MockableLiteralNull{},
+	}}
+	api := &CheckReportIDAPI{
+		BaseURL:    "https://ps1.ooni.io",
+		HTTPClient: clnt,
+	}
+	ctx := context.Background()
+	req := &CheckReportIDRequest{} // deliberately empty
+	resp, err := api.Call(ctx, req)
+	if !errors.Is(err, ErrEmptyField) {
+		t.Fatalf("not the error we expected: %+v", err)
+	}
+	if resp != nil {
+		t.Fatal("expected nil resp")
+	}
+}
+
 func TestCheckInInvalidURL(t *testing.T) {
 	api := &CheckInAPI{
 		BaseURL: "\t", // invalid
@@ -595,6 +615,26 @@ func TestMeasurementMetaRoundTrip(t *testing.T) {
 	}
 	if resp == nil {
 		t.Fatal("expected non-nil resp")
+	}
+}
+
+func TestMeasurementMetaMandatoryFields(t *testing.T) {
+	clnt := &MockableHTTPClient{Resp: &http.Response{
+		StatusCode: 200,
+		Body:       &MockableLiteralNull{},
+	}}
+	api := &MeasurementMetaAPI{
+		BaseURL:    "https://ps1.ooni.io",
+		HTTPClient: clnt,
+	}
+	ctx := context.Background()
+	req := &MeasurementMetaRequest{} // deliberately empty
+	resp, err := api.Call(ctx, req)
+	if !errors.Is(err, ErrEmptyField) {
+		t.Fatalf("not the error we expected: %+v", err)
+	}
+	if resp != nil {
+		t.Fatal("expected nil resp")
 	}
 }
 
