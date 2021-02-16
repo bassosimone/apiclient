@@ -73,6 +73,13 @@ func genschemainfo(cur reflect.Type) *openapi.Schema {
 	case reflect.Ptr:
 		return genschemainfo(cur.Elem())
 	case reflect.Struct:
+		if cur.String() == "time.Time" {
+			// Implementation note: we don't want to dive into time.Time but
+			// rather we want to pretend it's a string. The JSON parser for
+			// time.Time can indeed reconstruct a time.Time from a string, and
+			// it's much easier for us to let it do the parsing.
+			return &openapi.Schema{Type: "string"}
+		}
 		sinfo := &openapi.Schema{Type: "object"}
 		var once sync.Once
 		initmap := func() {
