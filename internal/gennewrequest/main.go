@@ -111,8 +111,8 @@ func genquery(filep osx.File, desc *apimodel.Descriptor) {
 func gencreaterequest(filep osx.File, desc *apimodel.Descriptor) {
 	if desc.Method == "POST" {
 		fmtx.Fprint(filep, "\tmarshal := json.Marshal\n")
-		fmtx.Fprint(filep, "\tif api.Marshal != nil {\n")
-		fmtx.Fprint(filep, "\t\tmarshal = api.Marshal\n")
+		fmtx.Fprint(filep, "\tif api.marshal != nil {\n")
+		fmtx.Fprint(filep, "\t\tmarshal = api.marshal\n")
 		fmtx.Fprint(filep, "\t}\n")
 		fmtx.Fprint(filep, "\tbody, err := marshal(req)\n")
 		fmtx.Fprint(filep, "\tif err != nil {\n")
