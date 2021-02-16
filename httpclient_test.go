@@ -2,7 +2,9 @@ package apiclient
 
 import (
 	"errors"
+	"io"
 	"net/http"
+	"sync"
 )
 
 var ErrMocked = errors.New("mocked error")
@@ -23,5 +25,29 @@ func (b *MockableBodyWithFailure) Read(d []byte) (int, error) {
 }
 
 func (b *MockableBodyWithFailure) Close() error {
+	return nil
+}
+
+type MockableEmptyBody struct {
+	done bool
+	mu   sync.Mutex
+}
+
+func (b *MockableEmptyBody) Read(d []byte) (int, error) {
+	defer b.mu.Unlock()
+	b.mu.Lock()
+	if b.done == false {
+		b.done = true
+		var out = []byte("{}")
+		if len(d) < len(out) {
+			panic("unexpected very small slice")
+		}
+		copy(d, out)
+		return len(out), nil
+	}
+	return 0, io.EOF
+}
+
+func (b *MockableEmptyBody) Close() error {
 	return nil
 }
