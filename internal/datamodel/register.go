@@ -2,6 +2,12 @@ package datamodel
 
 // RegisterRequest is the request for the Register API.
 type RegisterRequest struct {
+	Metadata RegisterRequestMetadata `json:"metadata"`
+	Password string                  `json:"password"`
+}
+
+// RegisterRequestMetadata contains metadata for the register request.
+type RegisterRequestMetadata struct {
 	AvailableBandwidth string   `json:"available_bandwidth,omitempty"`
 	DeviceToken        string   `json:"device_token,omitempty"`
 	Language           string   `json:"language,omitempty"`
