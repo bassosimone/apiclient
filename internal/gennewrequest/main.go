@@ -109,6 +109,12 @@ func genquery(filep osx.File, desc *apimodel.Descriptor) {
 }
 
 func gencreaterequest(filep osx.File, desc *apimodel.Descriptor) {
+	emit := func() {
+		fmtx.Fprint(filep, "\tnewRequest := http.NewRequestWithContext\n")
+		fmtx.Fprint(filep, "\tif api.NewRequest != nil {\n")
+		fmtx.Fprint(filep, "\t\tnewRequest = api.NewRequest\n")
+		fmtx.Fprint(filep, "\t}\n")
+	}
 	if desc.Method == "POST" {
 		fmtx.Fprint(filep, "\tmarshal := json.Marshal\n")
 		fmtx.Fprint(filep, "\tif api.marshal != nil {\n")
@@ -118,10 +124,7 @@ func gencreaterequest(filep osx.File, desc *apimodel.Descriptor) {
 		fmtx.Fprint(filep, "\tif err != nil {\n")
 		fmtx.Fprint(filep, "\t\treturn nil, err\n")
 		fmtx.Fprint(filep, "\t}\n")
-		fmtx.Fprint(filep, "\tnewRequest := http.NewRequestWithContext\n")
-		fmtx.Fprint(filep, "\tif api.NewRequest != nil {\n")
-		fmtx.Fprint(filep, "\t\tnewRequest = api.NewRequest\n")
-		fmtx.Fprint(filep, "\t}\n")
+		emit()
 		fmtx.Fprint(filep, "\tout, err := newRequest(")
 		fmtx.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
 		fmtx.Fprint(filep, "bytes.NewReader(body))\n")
@@ -132,7 +135,8 @@ func gencreaterequest(filep osx.File, desc *apimodel.Descriptor) {
 		fmtx.Fprint(filep, "\treturn out, nil\n")
 		return
 	}
-	fmtx.Fprint(filep, "\treturn http.NewRequestWithContext(")
+	emit()
+	fmtx.Fprint(filep, "\treturn newRequest(")
 	fmtx.Fprintf(filep, "ctx, \"%s\", URL.String(), ", desc.Method)
 	fmtx.Fprint(filep, "nil)\n")
 }
