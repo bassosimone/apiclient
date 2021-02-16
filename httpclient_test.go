@@ -51,3 +51,27 @@ func (b *MockableEmptyBody) Read(d []byte) (int, error) {
 func (b *MockableEmptyBody) Close() error {
 	return nil
 }
+
+type MockableLiteralNull struct {
+	done bool
+	mu   sync.Mutex
+}
+
+func (b *MockableLiteralNull) Read(d []byte) (int, error) {
+	defer b.mu.Unlock()
+	b.mu.Lock()
+	if b.done == false {
+		b.done = true
+		var out = []byte("null")
+		if len(d) < len(out) {
+			panic("unexpected very small slice")
+		}
+		copy(d, out)
+		return len(out), nil
+	}
+	return 0, io.EOF
+}
+
+func (b *MockableLiteralNull) Close() error {
+	return nil
+}
