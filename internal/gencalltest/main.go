@@ -62,12 +62,12 @@ func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithEmptyToken(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithMissingAuthorizer(filep osx.File, desc *apimodel.Descriptor) {
 	if desc.RequiresLogin == false {
 		return
 	}
 	apiname := getapiame(desc.Response)
-	fmtx.Fprintf(filep, "func Test%sWithEmptyToken(t *testing.T) {\n", apiname)
+	fmtx.Fprintf(filep, "func Test%sWithMissingAuthorizer(t *testing.T) {\n", apiname)
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t}\n")
@@ -75,7 +75,7 @@ func genTestWithEmptyToken(filep osx.File, desc *apimodel.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
-	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrEmptyToken) {\n")
+	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMissingAuthorizer) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tif resp != nil {\n")
@@ -90,11 +90,11 @@ func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "func Test%sWithHTTPErr(t *testing.T) {\n", apiname)
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Err: ErrMocked}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -138,13 +138,13 @@ func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithNewRequestErr(t *testing.T) {\n", apiname)
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tNewRequest: func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error) {\n")
 	fmtx.Fprint(filep, "\t\t\treturn nil, ErrMocked\n")
 	fmtx.Fprint(filep, "\t\t},\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -164,11 +164,11 @@ func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "func Test%sWith400(t *testing.T) {\n", apiname)
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -191,11 +191,11 @@ func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableBodyWithFailure{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -218,11 +218,11 @@ func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableEmptyBody{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprintf(filep, "\t\tunmarshal: func(b []byte, v interface{}) error {\n")
 	fmtx.Fprintf(filep, "\t\t\treturn ErrMocked\n")
 	fmtx.Fprintf(filep, "\t\t},\n")
@@ -248,11 +248,11 @@ func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableEmptyBody{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -279,11 +279,11 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -311,11 +311,11 @@ func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	fmtx.Fprintf(filep, "\treq := &%sRequest{} // deliberately empty\n", apiname)
@@ -341,14 +341,14 @@ func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
 	fmtx.Fprint(filep, "\t\tnewTemplate: func(name string) textTemplate {\n")
 	fmtx.Fprint(filep, "\t\t\treturn &templateParseError{}\n")
 	fmtx.Fprint(filep, "\t\t},\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -374,14 +374,14 @@ func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
 	fmtx.Fprint(filep, "\t\tnewTemplate: func(name string) textTemplate {\n")
 	fmtx.Fprint(filep, "\t\t\treturn &templateExecuteError{}\n")
 	fmtx.Fprint(filep, "\t\t},\n")
-	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
-	}
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
@@ -397,7 +397,7 @@ func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
 
 func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	genTestInvalidURL(filep, desc)
-	genTestWithEmptyToken(filep, desc)
+	genTestWithMissingAuthorizer(filep, desc)
 	genTestWithHTTPErr(filep, desc)
 	genTestMarshalErr(filep, desc)
 	genTestWithNewRequestErr(filep, desc)

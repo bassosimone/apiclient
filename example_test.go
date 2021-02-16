@@ -24,7 +24,7 @@ func ExampleURLsAPI_Call() {
 
 func ExampleTorTargetsAPI_Call() {
 	api := apiclient.TorTargetsAPI{
-		Token: "valid-token-here",
+		Authorizer: apiclient.NewStaticAuthorizer("valid-token-here"),
 	}
 	request := &apiclient.TorTargetsRequest{}
 	ctx := context.Background()

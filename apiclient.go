@@ -4,7 +4,7 @@
 //
 // For each defined API Foobar, there is a structure called FoobarAPI. Instantiate
 // a new FoobarAPI structure. In most cases, the zero structure is already valid. In
-// some cases, you need to explicitly initialize the auth token.
+// some cases, you need to explicitly initialize the Authorizer.
 //
 // You MAY reuse the same FoobarAPI structure to service multiple requests.
 //
@@ -38,6 +38,7 @@
 package apiclient
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -47,10 +48,10 @@ import (
 // Errors defined by this package. In addition to these errors, this
 // package may of course return any other stdlib specific error.
 var (
-	ErrHTTPFailure     = errors.New("apiclient: http request failed")
-	ErrJSONLiteralNull = errors.New("apiclient: server returned us a literal null")
-	ErrEmptyField      = errors.New("apiclient: empty field")
-	ErrEmptyToken      = errors.New("apiclient: empty auth token")
+	ErrHTTPFailure       = errors.New("apiclient: http request failed")
+	ErrJSONLiteralNull   = errors.New("apiclient: server returned us a literal null")
+	ErrEmptyField        = errors.New("apiclient: empty field")
+	ErrMissingAuthorizer = errors.New("apiclient: missing Authorizer")
 )
 
 // Swagger returns the API swagger v2.0 as a serialized JSON.
@@ -58,9 +59,30 @@ func Swagger() string {
 	return swagger
 }
 
-// HTTPClient is an HTTP client.
+// HTTPClient is the interface of a generic HTTP client.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+// Authorizer authenticates specific client requests.
+type Authorizer interface {
+	// MaybeRefreshToken refreshes the token for Authorization and returns
+	// either such a token, on success, or the error that occurred.
+	MaybeRefreshToken(ctx context.Context) (string, error)
+}
+
+type staticAuthorizer struct {
+	token string
+}
+
+func (sa *staticAuthorizer) MaybeRefreshToken(ctx context.Context) (string, error) {
+	return sa.token, nil
+}
+
+// NewStaticAuthorizer creates a new Authorizer that always
+// returns the specified token to the caller.
+func NewStaticAuthorizer(token string) Authorizer {
+	return &staticAuthorizer{token}
 }
 
 type textTemplate interface {

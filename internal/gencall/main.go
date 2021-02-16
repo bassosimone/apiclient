@@ -22,18 +22,18 @@ func genapitype(filep osx.File, desc *apimodel.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "// %sAPI is the %s API. The zero-value structure\n", apiname, apiname)
 	if desc.RequiresLogin {
-		fmtx.Fprint(filep, "// is not valid because Token is always required. We use\n")
+		fmtx.Fprint(filep, "// is not valid because Authorizer is always required. We use\n")
 		fmtx.Fprint(filep, "// suitable defaults for any other zero-initialized field.\n")
 	} else {
 		fmtx.Fprint(filep, "// works as intended using suitable default values.\n")
 	}
 	fmtx.Fprintf(filep, "type %sAPI struct {\n", apiname)
+	if desc.RequiresLogin {
+		fmtx.Fprint(filep, "\tAuthorizer Authorizer\n")
+	}
 	fmtx.Fprint(filep, "\tBaseURL     string\n")
 	fmtx.Fprint(filep, "\tHTTPClient  HTTPClient\n")
 	fmtx.Fprint(filep, "\tNewRequest  func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error)\n")
-	if desc.RequiresLogin {
-		fmtx.Fprint(filep, "\tToken       string\n")
-	}
 	fmtx.Fprint(filep, "\tUserAgent   string\n")
 	fmtx.Fprint(filep, "\tmarshal     func(v interface{}) ([]byte, error)\n")
 	if desc.URLPath.IsTemplate {
@@ -59,14 +59,16 @@ func gencall(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
-	if desc.RequiresLogin {
-		fmtx.Fprint(filep, "\tif api.Token == \"\" {\n")
-		fmtx.Fprint(filep, "\t\treturn nil, ErrEmptyToken\n")
-		fmtx.Fprint(filep, "\t}\n")
-	}
 	fmtx.Fprint(filep, "\treq.Header.Add(\"Accept\", \"application/json\")\n")
 	if desc.RequiresLogin {
-		fmtx.Fprintf(filep, "\tauthorization := fmt.Sprintf(\"Bearer %%s\", api.Token)\n")
+		fmtx.Fprint(filep, "\tif api.Authorizer == nil {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, ErrMissingAuthorizer\n")
+		fmtx.Fprint(filep, "\t}\n")
+		fmtx.Fprint(filep, "\ttoken, err := api.Authorizer.MaybeRefreshToken(ctx)\n")
+		fmtx.Fprint(filep, "\tif err != nil {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, err\n")
+		fmtx.Fprint(filep, "\t}\n")
+		fmtx.Fprintf(filep, "\tauthorization := fmt.Sprintf(\"Bearer %%s\", token)\n")
 		fmtx.Fprint(filep, "\treq.Header.Add(\"Authorization\", authorization)\n")
 	}
 	fmtx.Fprint(filep, "\treq.Header.Add(\"User-Agent\", api.UserAgent)\n")
