@@ -36,7 +36,11 @@ func genparse(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprintf(filep, "\tvar out %s\n", typevalueinfo.TypeName())
-	fmtx.Fprint(filep, "\tif err := json.Unmarshal(data, &out); err != nil {\n")
+	fmtx.Fprint(filep, "\tunmarshal := json.Unmarshal\n")
+	fmtx.Fprint(filep, "\tif api.Unmarshal != nil {\n")
+	fmtx.Fprint(filep, "\t\tunmarshal = api.Unmarshal\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif err := unmarshal(data, &out); err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
 	// For rationale, see https://play.golang.org/p/m9-MsTaQ5wt and

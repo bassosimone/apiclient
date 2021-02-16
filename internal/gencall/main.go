@@ -30,9 +30,12 @@ func genapitype(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "type %sAPI struct {\n", apiname)
 	fmtx.Fprint(filep, "\tBaseURL    string\n")
 	fmtx.Fprint(filep, "\tHTTPClient HTTPClient\n")
+	fmtx.Fprint(filep, "\tMarshal    func(v interface{}) ([]byte, error)\n")
+	fmtx.Fprint(filep, "\tNewRequest func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error)\n")
 	if desc.RequiresLogin {
 		fmtx.Fprint(filep, "\tToken      string\n")
 	}
+	fmtx.Fprint(filep, "\tUnmarshal  func(b []byte, v interface{}) error\n")
 	fmtx.Fprint(filep, "\tUserAgent  string\n")
 	fmtx.Fprint(filep, "}\n\n")
 }
@@ -92,6 +95,7 @@ func main() {
 	fmtx.Fprint(filep, "import (\n")
 	fmtx.Fprint(filep, "\t\"context\"\n")
 	fmtx.Fprint(filep, "\t\"fmt\"\n")
+	fmtx.Fprint(filep, "\t\"io\"\n")
 	fmtx.Fprint(filep, "\t\"net/http\"\n")
 	fmtx.Fprint(filep, ")\n\n")
 
