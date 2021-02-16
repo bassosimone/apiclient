@@ -329,6 +329,72 @@ func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
+func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
+	if !desc.URLPath.IsTemplate {
+		return
+	}
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	apiname := getapiame(desc.Response)
+	fmtx.Fprintf(filep, "func Test%sTemplateParseErr(t *testing.T) {\n", apiname)
+	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
+	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
+	fmtx.Fprint(filep, "\t}}\n")
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
+	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
+	fmtx.Fprint(filep, "\t\tnewTemplate: func(name string) textTemplate {\n")
+	fmtx.Fprint(filep, "\t\t\treturn &templateParseError{}\n")
+	fmtx.Fprint(filep, "\t\t},\n")
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
+	}
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tctx := context.Background()\n")
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
+	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
+	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif resp != nil {\n")
+	fmtx.Fprint(filep, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "}\n\n")
+}
+
+func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
+	if !desc.URLPath.IsTemplate {
+		return
+	}
+	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
+	apiname := getapiame(desc.Response)
+	fmtx.Fprintf(filep, "func Test%sTemplateExecuteErr(t *testing.T) {\n", apiname)
+	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
+	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
+	fmtx.Fprint(filep, "\t}}\n")
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
+	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
+	fmtx.Fprint(filep, "\t\tnewTemplate: func(name string) textTemplate {\n")
+	fmtx.Fprint(filep, "\t\t\treturn &templateExecuteError{}\n")
+	fmtx.Fprint(filep, "\t\t},\n")
+	if desc.RequiresLogin == true {
+		fmtx.Fprint(filep, "\t\tToken:      \"fakeToken\",\n")
+	}
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tctx := context.Background()\n")
+	genRequestAndMaybeMandatoryFields(filep, apiname, req)
+	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
+	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "\tif resp != nil {\n")
+	fmtx.Fprint(filep, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmtx.Fprint(filep, "\t}\n")
+	fmtx.Fprint(filep, "}\n\n")
+}
+
 func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	genTestInvalidURL(filep, desc)
 	genTestWithEmptyToken(filep, desc)
@@ -341,6 +407,8 @@ func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	genTestRoundTrip(filep, desc)
 	genTestResponseLiteralNull(filep, desc)
 	genTestMandatoryFields(filep, desc)
+	genTestTemplateParseErr(filep, desc)
+	genTestTemplateExecuteErr(filep, desc)
 }
 
 func main() {

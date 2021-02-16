@@ -36,7 +36,11 @@ func genurlpath(filep osx.File, desc *apimodel.Descriptor) {
 		fmtx.Fprintf(filep, "\tURL.Path = \"%s\"\n", desc.URLPath.Value)
 		return
 	}
-	fmtx.Fprintf(filep, "\ttmpl, err := template.New(\"urlpath\").Parse(\"%s\")\n", desc.URLPath.Value)
+	fmtx.Fprintf(filep, "\tnewTemplate := newStdlibTextTemplate\n")
+	fmtx.Fprintf(filep, "\tif api.newTemplate != nil {\n")
+	fmtx.Fprintf(filep, "\t\tnewTemplate = api.newTemplate\n")
+	fmtx.Fprintf(filep, "\t}\n")
+	fmtx.Fprintf(filep, "\ttmpl, err := newTemplate(\"urlpath\").Parse(\"%s\")\n", desc.URLPath.Value)
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
@@ -173,7 +177,6 @@ func main() {
 	fmtx.Fprint(filep, "\t\"context\"\n")
 	fmtx.Fprint(filep, "\t\"encoding/json\"\n")
 	fmtx.Fprint(filep, "\t\"fmt\"\n")
-	fmtx.Fprint(filep, "\t\"text/template\"\n")
 	fmtx.Fprint(filep, "\t\"net/http\"\n")
 	fmtx.Fprint(filep, "\t\"net/url\"\n")
 	fmtx.Fprint(filep, "\t\"strings\"\n")
