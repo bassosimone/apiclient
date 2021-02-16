@@ -49,9 +49,7 @@ func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 }
 
 func gencall(filep osx.File, desc *apimodel.Descriptor) {
-	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response)).TypeName()
-	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
-	fmtx.Fprintf(filep, "\treq, err := new%s(ctx, api.BaseURL, in)\n", req)
+	fmtx.Fprint(filep, "\treq, err := api.newRequest(ctx, api.BaseURL, in)\n")
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
@@ -70,7 +68,7 @@ func gencall(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tif api.HTTPClient != nil {\n")
 	fmtx.Fprint(filep, "\t\thttpClient = api.HTTPClient\n")
 	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprintf(filep, "\treturn new%s(httpClient.Do(req))\n", resp)
+	fmtx.Fprint(filep, "\treturn api.newResponse(httpClient.Do(req))\n")
 }
 
 func genendfunc(filep osx.File) {

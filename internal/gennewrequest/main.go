@@ -3,6 +3,7 @@ package main
 
 import (
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
@@ -22,7 +23,8 @@ func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typename := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
-	fmtx.Fprintf(filep, "func new%s", typename)
+	apiname := strings.Replace(typename, "Request", "API", 1)
+	fmtx.Fprintf(filep, "func (api *%s) newRequest", apiname)
 	fmtx.Fprint(filep, "(ctx context.Context, ")
 	fmtx.Fprint(filep, "baseURL string, ")
 	fmtx.Fprintf(filep, "req *%s)", typename)

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/apimodel"
@@ -12,7 +13,8 @@ import (
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typevalueinfo := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
-	fmtx.Fprintf(filep, "func new%s", typevalueinfo.TypeName())
+	apiname := strings.Replace(typevalueinfo.TypeName(), "Response", "API", 1)
+	fmtx.Fprintf(filep, "func (api *%s) newResponse", apiname)
 	fmtx.Fprint(filep, "(resp *http.Response, err error)")
 	fmtx.Fprintf(filep, " (%s, error) {\n", typevalueinfo.AsReturnType())
 }
