@@ -85,6 +85,24 @@ func NewStaticAuthorizer(token string) Authorizer {
 	return &staticAuthorizer{token}
 }
 
+// Client is a client for the OONI API.
+type Client struct {
+	// BaseURL is the base URL for the OONI API.
+	BaseURL string
+
+	// HTTPClient is the HTTP client to use. If not set, we will
+	// use the http.DefaultClient client.
+	HTTPClient HTTPClient
+
+	// UserAgent is the user agent for the OONI API.
+	UserAgent string
+}
+
+// MaybeRefreshToken implements Authorizer.MaybeRefreshToken.
+func (c *Client) MaybeRefreshToken(ctx context.Context) (string, error) {
+	return c.maybeLogin(ctx)
+}
+
 type textTemplate interface {
 	Parse(text string) (textTemplate, error)
 	Execute(wr io.Writer, data interface{}) error
