@@ -49,26 +49,26 @@ func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 }
 
 func gencall(filep osx.File, desc *apimodel.Descriptor) {
-	if desc.RequiresLogin {
-		fmtx.Fprint(filep, "\tif api.Token == \"\" {\n")
-		fmtx.Fprint(filep, "\t\treturn nil, ErrEmptyToken\n")
-		fmtx.Fprint(filep, "\t}\n")
-	}
 	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response)).TypeName()
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
 	fmtx.Fprintf(filep, "\treq, err := new%s(ctx, api.BaseURL, in)\n", req)
 	fmtx.Fprint(filep, "\tif err != nil {\n")
 	fmtx.Fprint(filep, "\t\treturn nil, err\n")
 	fmtx.Fprint(filep, "\t}\n")
+	if desc.RequiresLogin {
+		fmtx.Fprint(filep, "\tif api.Token == \"\" {\n")
+		fmtx.Fprint(filep, "\t\treturn nil, ErrEmptyToken\n")
+		fmtx.Fprint(filep, "\t}\n")
+	}
 	fmtx.Fprint(filep, "\treq.Header.Add(\"Accept\", \"application/json\")\n")
 	if desc.RequiresLogin {
 		fmtx.Fprintf(filep, "\tauthorization := fmt.Sprintf(\"Bearer %%s\", api.Token)\n")
 		fmtx.Fprint(filep, "\treq.Header.Add(\"Authorization\", authorization)\n")
 	}
 	fmtx.Fprint(filep, "\treq.Header.Add(\"User-Agent\", api.UserAgent)\n")
-	fmtx.Fprint(filep, "\thttpClient := api.HTTPClient\n")
-	fmtx.Fprint(filep, "\tif httpClient == nil {\n")
-	fmtx.Fprint(filep, "\t\thttpClient = http.DefaultClient\n")
+	fmtx.Fprint(filep, "\tvar httpClient HTTPClient = http.DefaultClient\n")
+	fmtx.Fprint(filep, "\tif api.HTTPClient != nil {\n")
+	fmtx.Fprint(filep, "\t\thttpClient = api.HTTPClient\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprintf(filep, "\treturn new%s(httpClient.Do(req))\n", resp)
 }
