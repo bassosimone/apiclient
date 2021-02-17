@@ -7,25 +7,9 @@ import (
 )
 
 func (d *Descriptor) genTestNewRequest(sb *strings.Builder) {
-	fields := d.getStructFieldsWithTag(d.Request, tagForRequired)
-	if len(fields) > 0 {
-		fmt.Fprintf(sb, "\treq := &%s{\n", d.requestTypeNameAsStruct())
-		for idx, field := range fields {
-			switch field.Type.Kind() {
-			case reflect.String:
-				fmt.Fprintf(sb, "\t\t%s: \"antani\",\n", field.Name)
-			case reflect.Bool:
-				fmt.Fprintf(sb, "\t\t%s: true,\n", field.Name)
-			case reflect.Int64:
-				fmt.Fprintf(sb, "\t\t%s: 123456789,\n", field.Name)
-			default:
-				panic(fmt.Sprintf("genTestNewRequest: unsupported field type: %d", idx))
-			}
-		}
-		fmt.Fprint(sb, "\t}\n")
-	} else {
-		fmt.Fprintf(sb, "\treq := &%s{}\n", d.requestTypeNameAsStruct())
-	}
+	fmt.Fprintf(sb, "\treq := &%s{}\n", d.requestTypeNameAsStruct())
+	fmt.Fprint(sb, "\tff := &fakeFill{}\n")
+	fmt.Fprint(sb, "\tff.fill(req)\n")
 }
 
 func (d *Descriptor) genTestInvalidURL(sb *strings.Builder) {
