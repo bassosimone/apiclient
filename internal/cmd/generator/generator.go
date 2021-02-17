@@ -2,6 +2,8 @@
 package main
 
 func main() {
-	genAPIModel()
-	genSwagger()
+	filep := mustCreateFile("generated.go")
+	defer filep.Close()
+	genAPIModel(filep)
+	genSwagger(filep)
 }
