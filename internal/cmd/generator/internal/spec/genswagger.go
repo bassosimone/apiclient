@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bassosimone/apiclient/internal/openapi"
+	"github.com/bassosimone/apiclient/internal/cmd/internal/openapi"
 )
 
 const (
