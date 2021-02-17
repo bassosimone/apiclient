@@ -2,15 +2,14 @@
 package main
 
 import (
-	"reflect"
 	"strings"
 	"time"
 
-	"github.com/bassosimone/apiclient/internal/spec"
 	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/spec"
 	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
@@ -19,48 +18,6 @@ func getapiame(in interface{}) string {
 	name = strings.Replace(name, "Request", "", 1)
 	name = strings.Replace(name, "Response", "", 1)
 	return name
-}
-
-func genRequestAndMaybeMandatoryFields(filep osx.File, apiname string, req *reflectx.TypeValueInfo) {
-	fields, err := req.AllFieldsWithTag("required")
-	fatalx.OnError(err, "req.AllFieldsWithTag failed")
-	if len(fields) > 0 {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{\n", apiname)
-		for _, field := range fields {
-			switch field.Self.Type.Kind() {
-			case reflect.String:
-				fmtx.Fprintf(filep, "\t\t%s: \"antani\",\n", field.Self.Name)
-			case reflect.Bool:
-				fmtx.Fprintf(filep, "\t\t%s: true,\n", field.Self.Name)
-			case reflect.Int64:
-				fmtx.Fprintf(filep, "\t\t%s: 123456789,\n", field.Self.Name)
-			default:
-				panic("genTestWithHTTPErr: unsupported field type")
-			}
-		}
-		fmtx.Fprint(filep, "\t}\n")
-	} else {
-		fmtx.Fprintf(filep, "\treq := &%sRequest{}\n", apiname)
-	}
-}
-
-func genTestInvalidURL(filep osx.File, desc *spec.Descriptor) {
-	apiname := getapiame(desc.Response)
-	fmtx.Fprintf(filep, "func Test%sInvalidURL(t *testing.T) {\n", apiname)
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
-	fmtx.Fprintf(filep, "\t\tBaseURL: \"\\t\", // invalid\n")
-	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprint(filep, "\tctx := context.Background()\n")
-	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
-	genRequestAndMaybeMandatoryFields(filep, apiname, req)
-	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
-	fmtx.Fprint(filep, "\tif err == nil || !strings.HasSuffix(err.Error(), \"invalid control character in URL\") {\n")
-	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
-	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprint(filep, "\tif resp != nil {\n")
-	fmtx.Fprint(filep, "\t\tt.Fatal(\"expected nil resp\")\n")
-	fmtx.Fprint(filep, "\t}\n")
-	fmtx.Fprint(filep, "}\n\n")
 }
 
 func genTestWithMissingAuthorizer(filep osx.File, desc *spec.Descriptor) {

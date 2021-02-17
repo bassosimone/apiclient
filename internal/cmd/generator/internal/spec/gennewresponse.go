@@ -39,6 +39,21 @@ func (d *Descriptor) responseTypeNameAsStruct() string {
 	return value.Type().String()
 }
 
+func (d *Descriptor) requestTypeNameAsStruct() string {
+	value := reflect.ValueOf(d.Request)
+	if value.Type().Kind() != reflect.Ptr {
+		panic("not a pointer")
+	}
+	if value.IsNil() {
+		panic("null pointer")
+	}
+	value = value.Elem()
+	if value.Type().Kind() != reflect.Struct {
+		panic("not a struct")
+	}
+	return value.Type().String()
+}
+
 // GenNewResponse generates the code that creates a response
 // given the result of a specific HTTP round trip.
 func (d *Descriptor) GenNewResponse() string {
