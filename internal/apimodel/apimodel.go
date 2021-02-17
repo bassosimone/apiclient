@@ -16,6 +16,7 @@ type URLPath struct {
 type Descriptor struct {
 	Method        string
 	URLPath       URLPath
+	Private       bool
 	Request       interface{}
 	Response      interface{}
 	RequiresLogin bool
@@ -35,6 +36,7 @@ var Descriptors = []Descriptor{{
 }, {
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/login"},
+	Private:  true,
 	Request:  datamodel.LoginRequest{},
 	Response: datamodel.LoginResponse{},
 }, {
@@ -45,6 +47,7 @@ var Descriptors = []Descriptor{{
 }, {
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/register"},
+	Private:  true,
 	Request:  datamodel.RegisterRequest{},
 	Response: datamodel.RegisterResponse{},
 }, {

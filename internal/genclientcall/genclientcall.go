@@ -23,6 +23,9 @@ func getname(in interface{}) string {
 }
 
 func generate(filep osx.File, desc *apimodel.Descriptor) {
+	if desc.Private {
+		return
+	}
 	apiname := getapiame(desc.Response)
 	reqname := getname(desc.Request)
 	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
