@@ -30,7 +30,7 @@ func genapitype(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	fmtx.Fprintf(filep, "type %sAPI struct {\n", apiname)
 	if desc.RequiresLogin {
-		fmtx.Fprint(filep, "\tAuthorizer Authorizer\n")
+		fmtx.Fprint(filep, "\tAuthorizer authorizer\n")
 	}
 	fmtx.Fprint(filep, "\tBaseURL     string\n")
 	fmtx.Fprint(filep, "\tHTTPClient  HTTPClient\n")
@@ -63,9 +63,9 @@ func gencall(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\treq.Header.Add(\"Accept\", \"application/json\")\n")
 	if desc.RequiresLogin {
 		fmtx.Fprint(filep, "\tif api.Authorizer == nil {\n")
-		fmtx.Fprint(filep, "\t\treturn nil, ErrMissingAuthorizer\n")
+		fmtx.Fprint(filep, "\t\treturn nil, errMissingAuthorizer\n")
 		fmtx.Fprint(filep, "\t}\n")
-		fmtx.Fprint(filep, "\ttoken, err := api.Authorizer.MaybeRefreshToken(ctx)\n")
+		fmtx.Fprint(filep, "\ttoken, err := api.Authorizer.maybeRefreshToken(ctx)\n")
 		fmtx.Fprint(filep, "\tif err != nil {\n")
 		fmtx.Fprint(filep, "\t\treturn nil, err\n")
 		fmtx.Fprint(filep, "\t}\n")

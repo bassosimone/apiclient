@@ -76,7 +76,7 @@ func genTestWithMissingAuthorizer(filep osx.File, desc *apimodel.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	genRequestAndMaybeMandatoryFields(filep, apiname, req)
 	fmtx.Fprint(filep, "\tresp, err := api.Call(ctx, req)\n")
-	fmtx.Fprint(filep, "\tif !errors.Is(err, ErrMissingAuthorizer) {\n")
+	fmtx.Fprint(filep, "\tif !errors.Is(err, errMissingAuthorizer) {\n")
 	fmtx.Fprintf(filep, "\t\tt.Fatalf(\"not the error we expected: %%+v\", err)\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tif resp != nil {\n")
@@ -92,7 +92,7 @@ func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Err: ErrMocked}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -140,7 +140,7 @@ func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "func Test%sWithNewRequestErr(t *testing.T) {\n", apiname)
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tNewRequest: func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error) {\n")
@@ -166,7 +166,7 @@ func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -193,7 +193,7 @@ func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -220,7 +220,7 @@ func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -250,7 +250,7 @@ func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -281,7 +281,7 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -313,7 +313,7 @@ func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -343,7 +343,7 @@ func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")
@@ -376,7 +376,7 @@ func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t}}\n")
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
-		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
+		fmtx.Fprint(filep, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
 	}
 	fmtx.Fprint(filep, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t\tHTTPClient: clnt,\n")

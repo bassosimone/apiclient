@@ -54,7 +54,7 @@ var (
 	ErrHTTPFailure       = errors.New("apiclient: http request failed")
 	ErrJSONLiteralNull   = errors.New("apiclient: server returned us a literal null")
 	ErrEmptyField        = errors.New("apiclient: empty field")
-	ErrMissingAuthorizer = errors.New("apiclient: missing Authorizer")
+	errMissingAuthorizer = errors.New("apiclient: missing Authorizer")
 )
 
 // Swagger returns the API swagger v2.0 as a serialized JSON.
@@ -65,27 +65,6 @@ func Swagger() string {
 // HTTPClient is the interface of a generic HTTP client.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
-}
-
-// Authorizer authenticates specific client requests.
-type Authorizer interface {
-	// MaybeRefreshToken refreshes the token for Authorization and returns
-	// either such a token, on success, or the error that occurred.
-	MaybeRefreshToken(ctx context.Context) (string, error)
-}
-
-type staticAuthorizer struct {
-	token string
-}
-
-func (sa *staticAuthorizer) MaybeRefreshToken(ctx context.Context) (string, error) {
-	return sa.token, nil
-}
-
-// NewStaticAuthorizer creates a new Authorizer that always
-// returns the specified token to the caller.
-func NewStaticAuthorizer(token string) Authorizer {
-	return &staticAuthorizer{token}
 }
 
 // Client is a client for the OONI API.
@@ -107,7 +86,7 @@ type Client struct {
 	UserAgent string
 }
 
-// MaybeRefreshToken implements Authorizer.MaybeRefreshToken.
+// maybeRefreshToken implements authorizer.maybeRefreshToken.
 //
 // You typically do not call this method directly. Rather, you create
 // an API using NewFoobarAPI(c). This will register the client as
@@ -125,6 +104,6 @@ type Client struct {
 //
 // This implementation should be robust to a change in
 // the backend database where all logins are lost.
-func (c *Client) MaybeRefreshToken(ctx context.Context) (string, error) {
+func (c *Client) maybeRefreshToken(ctx context.Context) (string, error) {
 	return c.maybeLogin(ctx)
 }
