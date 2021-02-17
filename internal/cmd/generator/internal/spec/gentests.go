@@ -234,13 +234,10 @@ func (d *Descriptor) genTestRoundTrip(sb *strings.Builder) {
 }
 
 func (d *Descriptor) genTestResponseLiteralNull(sb *strings.Builder) {
-	// TODO(bassosimone): factor out this snippter
-	switch reflect.TypeOf(d.Response).Kind() {
+	switch d.responseTypeKind() {
 	case reflect.Map:
-	case reflect.Ptr:
+	case reflect.Struct:
 		return // test not applicable
-	default:
-		panic("unsupported type")
 	}
 	fmt.Fprintf(sb, "func Test%sResponseLiteralNull(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")

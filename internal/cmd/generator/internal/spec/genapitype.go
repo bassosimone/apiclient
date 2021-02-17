@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-func (d *Descriptor) apiStructName() string {
-	return fmt.Sprintf("%sAPI", toLowerCamel(d.Name))
-}
-
 // GenAPIType generates the type definition for the API.
 func (d *Descriptor) GenAPIType() string {
 	var sb strings.Builder

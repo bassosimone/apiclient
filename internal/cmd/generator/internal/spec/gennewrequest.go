@@ -11,35 +11,6 @@ const (
 	tagForRequired = "required"
 )
 
-func (d *Descriptor) getStructFields(in interface{}) []*reflect.StructField {
-	value := reflect.ValueOf(in)
-	if value.Type().Kind() == reflect.Ptr {
-		if value.IsNil() {
-			panic("null pointer")
-		}
-		value = value.Elem()
-	}
-	if value.Type().Kind() != reflect.Struct {
-		panic("expected a struct")
-	}
-	var out []*reflect.StructField
-	for idx := 0; idx < value.NumField(); idx++ {
-		f := value.Type().Field(idx)
-		out = append(out, &f)
-	}
-	return out
-}
-
-func (d *Descriptor) getStructFieldsWithTag(in interface{}, tag string) []*reflect.StructField {
-	var out []*reflect.StructField
-	for _, f := range d.getStructFields(in) {
-		if f.Tag.Get(tag) != "" {
-			out = append(out, f)
-		}
-	}
-	return out
-}
-
 func (d *Descriptor) genNewRequestQueryElemString(sb *strings.Builder, f *reflect.StructField) {
 	name := f.Name
 	query := f.Tag.Get(tagForQuery)

@@ -2,21 +2,8 @@ package spec
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 )
-
-func (d *Descriptor) typeName(v interface{}) string {
-	return reflect.ValueOf(v).Type().String()
-}
-
-func (d *Descriptor) requestTypeName() string {
-	return d.typeName(d.Request)
-}
-
-func (d *Descriptor) responseTypeName() string {
-	return d.typeName(d.Response)
-}
 
 // GenAPICall generates the Call method of the API.
 func (d *Descriptor) GenAPICall() string {
