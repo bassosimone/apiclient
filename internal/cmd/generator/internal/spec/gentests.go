@@ -355,6 +355,34 @@ func (d *Descriptor) genTestTemplateExecuteErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
+func (d *Descriptor) genTestWithFailingAuthorizer(sb *strings.Builder) {
+	if !d.RequiresLogin {
+		return // nothing to test
+	}
+	fmt.Fprintf(sb, "func Test%sWithFailingAuthorizer(t *testing.T) {\n", d.Name)
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
+	fmt.Fprint(sb, "\t}}\n")
+	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tAuthorizer:      &failingAuthorizer{},\n")
+	}
+	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
+	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tctx := context.Background()\n")
+	d.genTestNewRequest(sb)
+	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
+	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif resp != nil {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "}\n\n")
+}
+
 // GenTests generates tests for generated code.
 func (d *Descriptor) GenTests() string {
 	var sb strings.Builder
@@ -371,5 +399,6 @@ func (d *Descriptor) GenTests() string {
 	d.genTestMandatoryFields(&sb)
 	d.genTestTemplateParseErr(&sb)
 	d.genTestTemplateExecuteErr(&sb)
+	d.genTestWithFailingAuthorizer(&sb)
 	return sb.String()
 }
