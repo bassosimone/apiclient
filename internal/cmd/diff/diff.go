@@ -56,9 +56,12 @@ func getClientModel() *openapi.Swagger {
 func simplifyRoundTrip(rt *openapi.RoundTrip) {
 	// This is a quirk that needs to be fixed upstream. We are not
 	// going to focus on it for now so that we reduce noise.
+	//
+	// TODO(bassosimone): fix the problem upstream.
 	rt.Consumes, rt.Produces = nil, nil
 
-	// Normalize the used name when a parameter is in body
+	// Normalize the used name when a parameter is in body. This
+	// should only have a cosmetic impact on the spec.
 	for _, param := range rt.Parameters {
 		if param.In == "body" {
 			param.Name = "body"
@@ -76,6 +79,9 @@ func simplifyRoundTrip(rt *openapi.RoundTrip) {
 }
 
 func simplifyInPlace(path *openapi.Path) *openapi.Path {
+	if path.Get != nil && path.Post != nil {
+		panic("unsupported configuration")
+	}
 	if path.Get != nil {
 		simplifyRoundTrip(path.Get)
 	}
@@ -98,9 +104,7 @@ type diffable struct {
 
 func computediff(server, client *diffable) string {
 	d := gotextdiff.ToUnified(server.name, client.name, server.value, myers.ComputeEdits(
-		span.URIFromPath(server.name),
-		server.value,
-		client.value,
+		span.URIFromPath(server.name), server.value, client.value,
 	))
 	return fmt.Sprint(d)
 }
@@ -124,6 +128,8 @@ func maybediff(key string, server, client *openapi.Path) int {
 func compare(serverURL string) int {
 	var code int
 	serverModel, clientModel := getServerModel(serverURL), getClientModel()
+	// Implementation note: the server model is richer than the client
+	// model, so we ignore everything not defined by the client.
 	for key := range serverModel.Paths {
 		if _, found := clientModel.Paths[key]; !found {
 			delete(serverModel.Paths, key)
