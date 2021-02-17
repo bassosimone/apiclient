@@ -7,33 +7,33 @@ import (
 	"sync"
 )
 
-var ErrMocked = errors.New("mocked error")
+var errMocked = errors.New("mocked error")
 
-type MockableHTTPClient struct {
+type mockableHTTPClient struct {
 	Resp *http.Response
 	Err  error
 }
 
-func (c *MockableHTTPClient) Do(req *http.Request) (*http.Response, error) {
+func (c *mockableHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	return c.Resp, c.Err
 }
 
-type MockableBodyWithFailure struct{}
+type mockableBodyWithFailure struct{}
 
-func (b *MockableBodyWithFailure) Read(d []byte) (int, error) {
-	return 0, ErrMocked
+func (b *mockableBodyWithFailure) Read(d []byte) (int, error) {
+	return 0, errMocked
 }
 
-func (b *MockableBodyWithFailure) Close() error {
+func (b *mockableBodyWithFailure) Close() error {
 	return nil
 }
 
-type MockableEmptyBody struct {
+type mockableEmptyBody struct {
 	done bool
 	mu   sync.Mutex
 }
 
-func (b *MockableEmptyBody) Read(d []byte) (int, error) {
+func (b *mockableEmptyBody) Read(d []byte) (int, error) {
 	defer b.mu.Unlock()
 	b.mu.Lock()
 	if b.done == false {
@@ -48,16 +48,16 @@ func (b *MockableEmptyBody) Read(d []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func (b *MockableEmptyBody) Close() error {
+func (b *mockableEmptyBody) Close() error {
 	return nil
 }
 
-type MockableLiteralNull struct {
+type mockableLiteralNull struct {
 	done bool
 	mu   sync.Mutex
 }
 
-func (b *MockableLiteralNull) Read(d []byte) (int, error) {
+func (b *mockableLiteralNull) Read(d []byte) (int, error) {
 	defer b.mu.Unlock()
 	b.mu.Lock()
 	if b.done == false {
@@ -72,6 +72,6 @@ func (b *MockableLiteralNull) Read(d []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func (b *MockableLiteralNull) Close() error {
+func (b *mockableLiteralNull) Close() error {
 	return nil
 }

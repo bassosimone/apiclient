@@ -64,7 +64,7 @@ func (ls *loginState) token() (string, error) {
 }
 
 // loginRequest returns a LoginRequest for the current loginState
-// or an error pointer if we don't have enough information.
+// or an error if we don't have enough information.
 func (ls *loginState) loginRequest() (*imodel.LoginRequest, error) {
 	if ls.ClientID == "" || ls.Password == "" {
 		return nil, errLoginNotRegistered
@@ -80,7 +80,7 @@ func (ls *loginState) writeback() error {
 	return ls.kvstore.Set(loginKey, data)
 }
 
-// doLogin executes the login flow.
+// doLogin executes the login flow and returns the token or an error.
 func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error) {
 	req, err := state.loginRequest()
 	if err != nil {
@@ -91,7 +91,8 @@ func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error)
 		if errors.Is(err, ErrHTTPFailure) {
 			// This happens if we get a 401 Unauthorized because for
 			// some reason the backend database has changed.
-			return "", errLoginBackendChanged
+			// TODO(bassosimone): need to check for 401 explicitly?
+			err = errLoginBackendChanged
 		}
 		return "", err
 	}
@@ -159,15 +160,27 @@ func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (str
 	return c.doLogin(ctx, state)
 }
 
-// maybeLogin returns the authorization token on success and
-// the error that occurred in case of failure.
-func (c *Client) maybeLogin(ctx context.Context) (string, error) {
+// maybeRefreshToken implements authorizer.maybeRefreshToken.
+//
+// When invoked, this method will roughly do the following:
+//
+// 1. if we already have a valid token, just return it;
+//
+// 2. if we already have valid orchestra credentials, then
+// login again so to refresh the token, then return the token;
+//
+// 3. otherwise, create a new account, and then login with
+// such an account, so we have a token to return.
+//
+// This implementation should be robust to a change in
+// the backend database where all logins are lost.
+func (c *Client) maybeRefreshToken(ctx context.Context) (string, error) {
 	state := newLoginState(c.kvstore())
 	if token, err := state.token(); err == nil {
 		return token, nil // we already have a good token to use
 	}
 	if token, err := c.doLogin(ctx, state); err == nil {
-		return token, nil
+		return token, nil // we have relogged in
 	}
 	return c.doRegisterAndLogin(ctx, state)
 }

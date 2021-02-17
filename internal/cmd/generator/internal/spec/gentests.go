@@ -67,7 +67,7 @@ func (d *Descriptor) genTestWithMissingAuthorizer(sb *strings.Builder) {
 
 func (d *Descriptor) genTestWithHTTPErr(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWithHTTPErr(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Err: ErrMocked}\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Err: errMocked}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
 		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
@@ -78,7 +78,7 @@ func (d *Descriptor) genTestWithHTTPErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -95,13 +95,13 @@ func (d *Descriptor) genTestMarshalErr(sb *strings.Builder) {
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	fmt.Fprintf(sb, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmt.Fprintf(sb, "\t\tmarshal: func(v interface{}) ([]byte, error) {\n")
-	fmt.Fprintf(sb, "\t\t\treturn nil, ErrMocked\n")
+	fmt.Fprintf(sb, "\t\t\treturn nil, errMocked\n")
 	fmt.Fprintf(sb, "\t\t},\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -118,13 +118,13 @@ func (d *Descriptor) genTestWithNewRequestErr(sb *strings.Builder) {
 	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tNewRequest: func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error) {\n")
-	fmt.Fprint(sb, "\t\t\treturn nil, ErrMocked\n")
+	fmt.Fprint(sb, "\t\t\treturn nil, errMocked\n")
 	fmt.Fprint(sb, "\t\t},\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -135,7 +135,7 @@ func (d *Descriptor) genTestWithNewRequestErr(sb *strings.Builder) {
 
 func (d *Descriptor) genTestWith400(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWith400(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
 		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
@@ -157,9 +157,9 @@ func (d *Descriptor) genTestWith400(sb *strings.Builder) {
 
 func (d *Descriptor) genTestWithResponseBodyReadErr(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWithResponseBodyReadErr(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableBodyWithFailure{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableBodyWithFailure{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -171,7 +171,7 @@ func (d *Descriptor) genTestWithResponseBodyReadErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -182,9 +182,9 @@ func (d *Descriptor) genTestWithResponseBodyReadErr(sb *strings.Builder) {
 
 func (d *Descriptor) genTestWithUnmarshalFailure(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWithUnmarshalFailure(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableEmptyBody{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -193,13 +193,13 @@ func (d *Descriptor) genTestWithUnmarshalFailure(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
 	fmt.Fprintf(sb, "\t\tunmarshal: func(b []byte, v interface{}) error {\n")
-	fmt.Fprintf(sb, "\t\t\treturn ErrMocked\n")
+	fmt.Fprintf(sb, "\t\t\treturn errMocked\n")
 	fmt.Fprintf(sb, "\t\t},\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -210,9 +210,9 @@ func (d *Descriptor) genTestWithUnmarshalFailure(sb *strings.Builder) {
 
 func (d *Descriptor) genTestRoundTrip(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sRoundTrip(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableEmptyBody{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -241,9 +241,9 @@ func (d *Descriptor) genTestResponseLiteralNull(sb *strings.Builder) {
 		return // test not applicable
 	}
 	fmt.Fprintf(sb, "func Test%sResponseLiteralNull(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableLiteralNull{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -270,9 +270,9 @@ func (d *Descriptor) genTestMandatoryFields(sb *strings.Builder) {
 		return // nothing to test
 	}
 	fmt.Fprintf(sb, "func Test%sMandatoryFields(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableLiteralNull{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -298,9 +298,9 @@ func (d *Descriptor) genTestTemplateParseErr(sb *strings.Builder) {
 		return // nothing to test
 	}
 	fmt.Fprintf(sb, "func Test%sTemplateParseErr(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableLiteralNull{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -315,7 +315,7 @@ func (d *Descriptor) genTestTemplateParseErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -329,9 +329,9 @@ func (d *Descriptor) genTestTemplateExecuteErr(sb *strings.Builder) {
 		return // nothing to test
 	}
 	fmt.Fprintf(sb, "func Test%sTemplateExecuteErr(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
 	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &MockableLiteralNull{},\n")
+	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	if d.RequiresLogin == true {
@@ -346,7 +346,7 @@ func (d *Descriptor) genTestTemplateExecuteErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, ErrMocked) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")

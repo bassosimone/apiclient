@@ -7,11 +7,9 @@ import (
 	"github.com/bassosimone/apiclient/model"
 )
 
-// TODO(bassosimone): baseURL should use the field
-// TODO(bassosimone): allow retry request
 // TODO(bassosimone): write test for URL path
 
-func TestMeasurementMetaNewRequestRLOkay(t *testing.T) {
+func TestMeasurementMetaNewRequestURLOkay(t *testing.T) {
 	api := &measurementMetaAPI{}
 	apireq := &model.MeasurementMetaRequest{
 		ReportID: "abc",
