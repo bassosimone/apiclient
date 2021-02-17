@@ -9,7 +9,7 @@ import (
 func (d *Descriptor) GenClientCall() string {
 	var sb strings.Builder
 	if d.Private {
-		return ""
+		return "" // we don't generate a client call for private APIs
 	}
 	fmt.Fprintf(&sb, "// %s calls the %s API.\n", d.Name, d.Name)
 	fmt.Fprintf(

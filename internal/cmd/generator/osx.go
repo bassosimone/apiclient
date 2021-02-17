@@ -14,7 +14,8 @@ type file interface {
 	io.Writer
 }
 
-// mustCreateFile creates a new File or calls log.Fatal
+// mustCreateFile creates a new File or calls log.Fatal. The returned
+// file is such that any write error results in a failure.
 func mustCreateFile(pathname string) file {
 	filep, err := os.Create(pathname)
 	fatalx.OnError(err, "os.Create failed")

@@ -46,7 +46,7 @@ func (d *Descriptor) genNewRequestQueryElemInt64(sb *strings.Builder, f *reflect
 
 func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) bool {
 	if d.Method != "GET" {
-		return false
+		return false // we only generate query for GET
 	}
 	fields := d.getStructFieldsWithTag(d.Request, tagForQuery)
 	if len(fields) <= 0 {
@@ -74,7 +74,7 @@ func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) bool {
 
 func (d *Descriptor) genNewRequestURLPath(sb *strings.Builder) {
 	if !d.URLPath.IsTemplate {
-		return
+		return // only when we have a template
 	}
 	fmt.Fprintf(
 		sb, "func (api *%s) newRequestURLPath(req %s) (string, error) {\n",
@@ -97,7 +97,7 @@ func (d *Descriptor) genNewRequestURLPath(sb *strings.Builder) {
 }
 
 func (d *Descriptor) genNewRequestCallNewRequest(sb *strings.Builder) {
-	emit := func() {
+	emit := func() { // common code for setting up newRequest function ptr
 		fmt.Fprint(sb, "\tnewRequest := http.NewRequestWithContext\n")
 		fmt.Fprint(sb, "\tif api.NewRequest != nil {\n")
 		fmt.Fprint(sb, "\t\tnewRequest = api.NewRequest\n")

@@ -5,6 +5,7 @@ import (
 )
 
 func init() {
+	// make sure strcase behaves the way we want
 	strcase.ConfigureAcronym("URLs", "urls")
 }
 

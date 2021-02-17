@@ -54,16 +54,16 @@ func (d *Descriptor) genSwaggerSchema(cur reflect.Type) *openapi.Schema {
 		for idx := 0; idx < cur.NumField(); idx++ {
 			field := cur.Field(idx)
 			if field.Tag.Get(tagForPath) != "" {
-				continue
+				continue // skipping because this is a path param
 			}
 			if field.Tag.Get(tagForQuery) != "" {
-				continue
+				continue // skipping because this is a query param
 			}
 			v := field.Name
 			if j := field.Tag.Get(tagForJSON); j != "" {
-				j = strings.Replace(j, ",omitempty", "", 1)
+				j = strings.Replace(j, ",omitempty", "", 1) // remove options
 				if j == "-" {
-					continue
+					continue // not exported via JSON
 				}
 				v = j
 			}
@@ -92,6 +92,7 @@ func (d *Descriptor) swaggerParamForType(t reflect.Type) string {
 }
 
 func (d *Descriptor) genSwaggerParams(cur reflect.Type) []*openapi.Parameter {
+	// when we have params the input must be a pointer to struct
 	if cur.Kind() != reflect.Ptr {
 		panic("not a pointer")
 	}
@@ -99,16 +100,18 @@ func (d *Descriptor) genSwaggerParams(cur reflect.Type) []*openapi.Parameter {
 	if cur.Kind() != reflect.Struct {
 		panic("not a pointer to struct")
 	}
+	// now that we're sure of the type, inspect the fields
 	var out []*openapi.Parameter
 	for idx := 0; idx < cur.NumField(); idx++ {
 		f := cur.Field(idx)
 		if q := f.Tag.Get(tagForQuery); q != "" {
-			out = append(out, &openapi.Parameter{
-				Name:     q,
-				In:       "query",
-				Required: f.Tag.Get(tagForRequired) == "true",
-				Type:     d.swaggerParamForType(f.Type),
-			})
+			out = append(
+				out, &openapi.Parameter{
+					Name:     q,
+					In:       "query",
+					Required: f.Tag.Get(tagForRequired) == "true",
+					Type:     d.swaggerParamForType(f.Type),
+				})
 			continue
 		}
 		if p := f.Tag.Get(tagForPath); p != "" {
@@ -134,6 +137,8 @@ func (d *Descriptor) GenSwaggerPath() (string, *openapi.Path) {
 	case "POST":
 		rtinfo.Consumes = append(rtinfo.Consumes, "application/json")
 		pathInfo.Post = rtinfo
+	default:
+		panic("unsupported method")
 	}
 	rtinfo.Parameters = d.genSwaggerParams(reflect.TypeOf(d.Request))
 	if d.Method != "GET" {

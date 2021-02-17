@@ -47,7 +47,7 @@ func (d *Descriptor) genTestInvalidURL(sb *strings.Builder) {
 
 func (d *Descriptor) genTestWithMissingAuthorizer(sb *strings.Builder) {
 	if d.RequiresLogin == false {
-		return
+		return // does not make sense when login isn't required
 	}
 	fmt.Fprintf(sb, "func Test%sWithMissingAuthorizer(t *testing.T) {\n", d.Name)
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
@@ -89,7 +89,7 @@ func (d *Descriptor) genTestWithHTTPErr(sb *strings.Builder) {
 
 func (d *Descriptor) genTestMarshalErr(sb *strings.Builder) {
 	if d.Method != "POST" {
-		return
+		return // does not make sense when we don't send a request body
 	}
 	fmt.Fprintf(sb, "func Test%sMarshalErr(t *testing.T) {\n", d.Name)
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
@@ -236,6 +236,7 @@ func (d *Descriptor) genTestRoundTrip(sb *strings.Builder) {
 func (d *Descriptor) genTestResponseLiteralNull(sb *strings.Builder) {
 	switch d.responseTypeKind() {
 	case reflect.Map:
+		// fallthrough
 	case reflect.Struct:
 		return // test not applicable
 	}
@@ -294,7 +295,7 @@ func (d *Descriptor) genTestMandatoryFields(sb *strings.Builder) {
 
 func (d *Descriptor) genTestTemplateParseErr(sb *strings.Builder) {
 	if !d.URLPath.IsTemplate {
-		return
+		return // nothing to test
 	}
 	fmt.Fprintf(sb, "func Test%sTemplateParseErr(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
@@ -325,7 +326,7 @@ func (d *Descriptor) genTestTemplateParseErr(sb *strings.Builder) {
 
 func (d *Descriptor) genTestTemplateExecuteErr(sb *strings.Builder) {
 	if !d.URLPath.IsTemplate {
-		return
+		return // nothing to test
 	}
 	fmt.Fprintf(sb, "func Test%sTemplateExecuteErr(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &MockableHTTPClient{Resp: &http.Response{\n")
