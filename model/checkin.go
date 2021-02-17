@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // CheckInRequestWebConnectivity contains WebConnectivity
 // specific parameters to include into CheckInRequest

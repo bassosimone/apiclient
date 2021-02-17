@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // MeasurementMetaRequest is the MeasurementMeta Request.
 type MeasurementMetaRequest struct {

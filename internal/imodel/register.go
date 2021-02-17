@@ -1,4 +1,4 @@
-package datamodel
+package imodel
 
 // RegisterRequest is the request for the Register API.
 type RegisterRequest struct {

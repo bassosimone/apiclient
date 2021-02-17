@@ -1,4 +1,5 @@
-package datamodel
+// Package imodel contains the internal data model
+package imodel
 
 import "time"
 

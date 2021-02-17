@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // TestHelpersRequest is the TestHelpers request.
 type TestHelpersRequest struct{}

@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // PsiphonConfigRequest is the request for the PsiphonConfig API
 type PsiphonConfigRequest struct{}

@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // SubmitMeasurementRequest is the SubmitMeasurement request.
 type SubmitMeasurementRequest struct {

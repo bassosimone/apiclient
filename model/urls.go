@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // URLsRequest is the URLs request.
 type URLsRequest struct {

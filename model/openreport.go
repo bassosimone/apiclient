@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // OpenReportRequest is the OpenReport request.
 type OpenReportRequest struct {

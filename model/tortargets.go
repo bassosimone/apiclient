@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // TorTargetsRequest is a request for the TorTargets API.
 type TorTargetsRequest struct{}

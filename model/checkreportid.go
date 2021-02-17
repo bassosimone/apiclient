@@ -1,4 +1,4 @@
-package datamodel
+package model
 
 // CheckReportIDRequest is the CheckReportID request.
 type CheckReportIDRequest struct {

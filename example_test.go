@@ -6,11 +6,12 @@ import (
 	"log"
 
 	"github.com/bassosimone/apiclient"
+	"github.com/bassosimone/apiclient/model"
 )
 
 func ExampleClient_URLs() {
 	clnt := &apiclient.Client{}
-	request := &apiclient.URLsRequest{
+	request := &model.URLsRequest{
 		CountryCode: "IT",
 		Limit:       14,
 	}
@@ -24,7 +25,7 @@ func ExampleClient_URLs() {
 
 func ExampleClient_TorTargets() {
 	clnt := &apiclient.Client{}
-	request := &apiclient.TorTargetsRequest{}
+	request := &model.TorTargetsRequest{}
 	ctx := context.Background()
 	response, err := clnt.TorTargets(ctx, request)
 	if err != nil {

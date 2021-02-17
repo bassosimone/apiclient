@@ -3,7 +3,10 @@
 // remember to run `go generate ./...` to regenerate apiclient files.
 package apimodel
 
-import "github.com/bassosimone/apiclient/internal/datamodel"
+import (
+	"github.com/bassosimone/apiclient/internal/imodel"
+	"github.com/bassosimone/apiclient/model"
+)
 
 // URLPath describes the URLPath.
 type URLPath struct {
@@ -14,6 +17,7 @@ type URLPath struct {
 
 // Descriptor is an API descriptor.
 type Descriptor struct {
+	Name          string
 	Method        string
 	URLPath       URLPath
 	Private       bool
@@ -24,66 +28,77 @@ type Descriptor struct {
 
 // Descriptors contains all descriptors.
 var Descriptors = []Descriptor{{
+	Name:     "CheckReportID",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/_/check_report_id"},
-	Request:  datamodel.CheckReportIDRequest{},
-	Response: datamodel.CheckReportIDResponse{},
+	Request:  &model.CheckReportIDRequest{},
+	Response: &model.CheckReportIDResponse{},
 }, {
+	Name:     "CheckIn",
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/check-in"},
-	Request:  datamodel.CheckInRequest{},
-	Response: datamodel.CheckInResponse{},
+	Request:  &model.CheckInRequest{},
+	Response: &model.CheckInResponse{},
 }, {
+	Name:     "Login",
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/login"},
 	Private:  true,
-	Request:  datamodel.LoginRequest{},
-	Response: datamodel.LoginResponse{},
+	Request:  &imodel.LoginRequest{},
+	Response: &imodel.LoginResponse{},
 }, {
+	Name:     "MeasurementMeta",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/measurement_meta"},
-	Request:  datamodel.MeasurementMetaRequest{},
-	Response: datamodel.MeasurementMetaResponse{},
+	Request:  &model.MeasurementMetaRequest{},
+	Response: &model.MeasurementMetaResponse{},
 }, {
+	Name:     "Register",
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/register"},
 	Private:  true,
-	Request:  datamodel.RegisterRequest{},
-	Response: datamodel.RegisterResponse{},
+	Request:  &imodel.RegisterRequest{},
+	Response: &imodel.RegisterResponse{},
 }, {
+	Name:     "TestHelpers",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-helpers"},
-	Request:  datamodel.TestHelpersRequest{},
-	Response: datamodel.TestHelpersResponse{},
+	Request:  &model.TestHelpersRequest{},
+	Response: model.TestHelpersResponse{},
 }, {
+	Name:          "PsiphonConfig",
 	Method:        "GET",
 	URLPath:       URLPath{Value: "/api/v1/test-list/psiphon-config"},
-	Request:       datamodel.PsiphonConfigRequest{},
-	Response:      datamodel.PsiphonConfigResponse{},
+	Request:       &model.PsiphonConfigRequest{},
+	Response:      model.PsiphonConfigResponse{},
 	RequiresLogin: true,
 }, {
+	Name:          "TorTargets",
 	Method:        "GET",
 	URLPath:       URLPath{Value: "/api/v1/test-list/tor-targets"},
-	Request:       datamodel.TorTargetsRequest{},
-	Response:      datamodel.TorTargetsResponse{},
+	Request:       &model.TorTargetsRequest{},
+	Response:      model.TorTargetsResponse{},
 	RequiresLogin: true,
 }, {
+	Name:     "URLs",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-list/urls"},
-	Request:  datamodel.URLsRequest{},
-	Response: datamodel.URLsResponse{},
+	Request:  &model.URLsRequest{},
+	Response: &model.URLsResponse{},
 }, {
+	Name:     "OpenReport",
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/report"},
-	Request:  datamodel.OpenReportRequest{},
-	Response: datamodel.OpenReportResponse{},
+	Request:  &model.OpenReportRequest{},
+	Response: &model.OpenReportResponse{},
 }, {
+	Name:   "SubmitMeasurement",
 	Method: "POST",
 	URLPath: URLPath{
 		InSwagger:  "/report/{report_id}",
 		IsTemplate: true,
 		Value:      "/report/{{ .ReportID }}",
 	},
-	Request:  datamodel.SubmitMeasurementRequest{},
-	Response: datamodel.SubmitMeasurementResponse{},
+	Request:  &model.SubmitMeasurementRequest{},
+	Response: &model.SubmitMeasurementResponse{},
 }}

@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"github.com/bassosimone/apiclient/internal/imodel"
 )
 
 // loginState contains the login state. This structure is saved
@@ -63,11 +65,11 @@ func (ls *loginState) token() (string, error) {
 
 // loginRequest returns a LoginRequest for the current loginState
 // or an error pointer if we don't have enough information.
-func (ls *loginState) loginRequest() (*LoginRequest, error) {
+func (ls *loginState) loginRequest() (*imodel.LoginRequest, error) {
 	if ls.ClientID == "" || ls.Password == "" {
 		return nil, errLoginNotRegistered
 	}
-	return &LoginRequest{ClientID: ls.ClientID, Password: ls.Password}, nil
+	return &imodel.LoginRequest{ClientID: ls.ClientID, Password: ls.Password}, nil
 }
 
 func (ls *loginState) writeback() error {
@@ -84,7 +86,7 @@ func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error)
 	if err != nil {
 		return "", err
 	}
-	resp, err := newLoginAPI(c).Call(ctx, req)
+	resp, err := newLoginAPI(c).call(ctx, req)
 	if err != nil {
 		if errors.Is(err, ErrHTTPFailure) {
 			// This happens if we get a 401 Unauthorized because for
@@ -115,13 +117,13 @@ func (c *Client) newRandomPassword() (string, error) {
 }
 
 // newRegisterRequest creates a new RegisterRequest.
-func (c *Client) newRegisterRequest() (*RegisterRequest, error) {
+func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
 	password, err := c.newRandomPassword()
 	if err != nil {
 		return nil, err
 	}
-	return &RegisterRequest{
-		Metadata: RegisterRequestMetadata{
+	return &imodel.RegisterRequest{
+		Metadata: imodel.RegisterRequestMetadata{
 			// The original implementation has as its only use case that we
 			// were registering and logging in for sending an update regarding
 			// the probe whereabouts. Yet here in probe-engine, the orchestra
@@ -146,7 +148,7 @@ func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (str
 	if err != nil {
 		return "", err
 	}
-	resp, err := newRegisterAPI(c).Call(ctx, req)
+	resp, err := newRegisterAPI(c).call(ctx, req)
 	if err != nil {
 		return "", err
 	}

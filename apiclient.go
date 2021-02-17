@@ -45,6 +45,7 @@ package apiclient
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -56,6 +57,18 @@ var (
 	ErrEmptyField        = errors.New("apiclient: empty field")
 	errMissingAuthorizer = errors.New("apiclient: missing Authorizer")
 )
+
+func newErrEmptyField(field string) error {
+	return fmt.Errorf("%w: %s", ErrEmptyField, field)
+}
+
+func newHTTPFailure(status int) error {
+	return fmt.Errorf("%w: %d", ErrHTTPFailure, status)
+}
+
+func newQueryFieldInt64(v int64) string {
+	return fmt.Sprintf("%d", v)
+}
 
 // Swagger returns the API swagger v2.0 as a serialized JSON.
 func Swagger() string {

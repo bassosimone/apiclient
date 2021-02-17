@@ -3,6 +3,8 @@ package apiclient
 import (
 	"context"
 	"testing"
+
+	"github.com/bassosimone/apiclient/model"
 )
 
 // TODO(bassosimone): baseURL should use the field
@@ -11,13 +13,13 @@ import (
 
 func TestMeasurementMetaNewRequestRLOkay(t *testing.T) {
 	api := &measurementMetaAPI{}
-	apireq := &MeasurementMetaRequest{
+	apireq := &model.MeasurementMetaRequest{
 		ReportID: "abc",
 		Full:     true,
 		Input:    "xyz",
 	}
 	ctx := context.Background()
-	req, err := api.newRequest(ctx, "https://ps1.ooni.io", apireq)
+	req, err := api.newRequest(ctx, apireq)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,13 +37,13 @@ func TestMeasurementMetaNewRequestRLOkay(t *testing.T) {
 
 func TestURLsNewRequestURLOkay(t *testing.T) {
 	api := &urlsAPI{}
-	apireq := &URLsRequest{
+	apireq := &model.URLsRequest{
 		CategoryCodes: "HUMR,HACK",
 		CountryCode:   "IT",
 		Limit:         128,
 	}
 	ctx := context.Background()
-	req, err := api.newRequest(ctx, "https://ps1.ooni.io", apireq)
+	req, err := api.newRequest(ctx, apireq)
 	if err != nil {
 		t.Fatal(err)
 	}
