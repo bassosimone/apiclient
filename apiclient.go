@@ -45,9 +45,7 @@ package apiclient
 import (
 	"context"
 	"errors"
-	"io"
 	"net/http"
-	"text/template"
 )
 
 // Errors defined by this package. In addition to these errors, this
@@ -129,25 +127,4 @@ type Client struct {
 // the backend database where all logins are lost.
 func (c *Client) MaybeRefreshToken(ctx context.Context) (string, error) {
 	return c.maybeLogin(ctx)
-}
-
-type textTemplate interface {
-	Parse(text string) (textTemplate, error)
-	Execute(wr io.Writer, data interface{}) error
-}
-
-type stdlibTextTemplate struct {
-	*template.Template
-}
-
-func (t *stdlibTextTemplate) Parse(text string) (textTemplate, error) {
-	out, err := t.Template.Parse(text)
-	if err != nil {
-		return nil, err
-	}
-	return &stdlibTextTemplate{out}, nil
-}
-
-func newStdlibTextTemplate(name string) textTemplate {
-	return &stdlibTextTemplate{template.New(name)}
 }
