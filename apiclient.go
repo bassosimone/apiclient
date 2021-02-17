@@ -22,7 +22,7 @@
 // Maintenance
 //
 // Edit internal/datamodel to change the request and response structures. Edit
-// internal/apimodel to change the API specification. Run
+// internal/spec to change the API specification. Run
 //
 //     go generate ./...
 //

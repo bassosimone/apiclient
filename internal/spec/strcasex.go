@@ -1,4 +1,4 @@
-package apimodel
+package spec
 
 import (
 	"github.com/iancoleman/strcase"

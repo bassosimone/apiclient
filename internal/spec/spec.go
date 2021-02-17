@@ -1,7 +1,7 @@
-// Package apimodel describes all the implemented APIs. You need to
+// Package spec describes all the implemented APIs. You need to
 // edit this package to add/remove/modify APIs. Once you are done editing,
 // remember to run `go generate ./...` to regenerate apiclient files.
-package apimodel
+package spec
 
 import (
 	"github.com/bassosimone/apiclient/internal/imodel"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/bassosimone/apiclient/internal/apimodel"
+	"github.com/bassosimone/apiclient/internal/spec"
 	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/openapi"
 )
@@ -25,7 +25,7 @@ func genSwagger() {
 		Schemes:  []string{"https"},
 		Paths:    make(map[string]*openapi.Path),
 	}
-	for _, desc := range apimodel.Descriptors {
+	for _, desc := range spec.Descriptors {
 		pathStr, pathInfo := desc.GenSwaggerPath()
 		swagger.Paths[pathStr] = pathInfo
 	}

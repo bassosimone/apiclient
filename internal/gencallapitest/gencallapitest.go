@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bassosimone/apiclient/internal/apimodel"
+	"github.com/bassosimone/apiclient/internal/spec"
 	"github.com/bassosimone/apiclient/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
@@ -44,7 +44,7 @@ func genRequestAndMaybeMandatoryFields(filep osx.File, apiname string, req *refl
 	}
 }
 
-func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
+func genTestInvalidURL(filep osx.File, desc *spec.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sInvalidURL(t *testing.T) {\n", apiname)
 	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
@@ -63,7 +63,7 @@ func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithMissingAuthorizer(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithMissingAuthorizer(filep osx.File, desc *spec.Descriptor) {
 	if desc.RequiresLogin == false {
 		return
 	}
@@ -85,7 +85,7 @@ func genTestWithMissingAuthorizer(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithHTTPErr(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithHTTPErr(t *testing.T) {\n", apiname)
@@ -109,7 +109,7 @@ func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestMarshalErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestMarshalErr(filep osx.File, desc *spec.Descriptor) {
 	if desc.Method != "POST" {
 		return
 	}
@@ -134,7 +134,7 @@ func genTestMarshalErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithNewRequestErr(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithNewRequestErr(t *testing.T) {\n", apiname)
@@ -159,7 +159,7 @@ func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWith400(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWith400(t *testing.T) {\n", apiname)
@@ -183,7 +183,7 @@ func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithResponseBodyReadErr(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithResponseBodyReadErr(t *testing.T) {\n", apiname)
@@ -210,7 +210,7 @@ func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
+func genTestWithUnmarshalFailure(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithUnmarshalFailure(t *testing.T) {\n", apiname)
@@ -240,7 +240,7 @@ func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
+func genTestRoundTrip(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sRoundTrip(t *testing.T) {\n", apiname)
@@ -267,7 +267,7 @@ func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
+func genTestResponseLiteralNull(filep osx.File, desc *spec.Descriptor) {
 	resp := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
 	if !resp.CanBeNil() {
 		return
@@ -298,7 +298,7 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
+func genTestMandatoryFields(filep osx.File, desc *spec.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	fields, err := req.AllFieldsWithTag("required")
 	fatalx.OnError(err, "req.AllFieldsWithTag failed")
@@ -330,7 +330,7 @@ func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestTemplateParseErr(filep osx.File, desc *spec.Descriptor) {
 	if !desc.URLPath.IsTemplate {
 		return
 	}
@@ -363,7 +363,7 @@ func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
+func genTestTemplateExecuteErr(filep osx.File, desc *spec.Descriptor) {
 	if !desc.URLPath.IsTemplate {
 		return
 	}
@@ -396,7 +396,7 @@ func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "}\n\n")
 }
 
-func genapi(filep osx.File, desc *apimodel.Descriptor) {
+func genapi(filep osx.File, desc *spec.Descriptor) {
 	genTestInvalidURL(filep, desc)
 	genTestWithMissingAuthorizer(filep, desc)
 	genTestWithHTTPErr(filep, desc)
@@ -430,7 +430,7 @@ func main() {
 
 	fmtx.Fprint(filep, "//go:generate go run ./internal/gencallapitest/...\n\n")
 
-	for _, descr := range apimodel.Descriptors {
+	for _, descr := range spec.Descriptors {
 		genapi(filep, &descr)
 	}
 }
