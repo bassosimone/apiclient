@@ -49,7 +49,7 @@ func getServerModel(serverURL string) *openapi.Swagger {
 	return makeModel(data)
 }
 
-func getClientModel(clientFile string) *openapi.Swagger {
+func getClientModel() *openapi.Swagger {
 	return makeModel([]byte(apiclient.Swagger()))
 }
 
@@ -121,9 +121,9 @@ func maybediff(key string, server, client *openapi.Path) int {
 	return len(diff)
 }
 
-func compare(clientFile, serverURL string) int {
+func compare(serverURL string) int {
 	var code int
-	serverModel, clientModel := getServerModel(serverURL), getClientModel(clientFile)
+	serverModel, clientModel := getServerModel(serverURL), getClientModel()
 	for key := range serverModel.Paths {
 		if _, found := clientModel.Paths[key]; !found {
 			delete(serverModel.Paths, key)
@@ -137,5 +137,5 @@ func compare(clientFile, serverURL string) int {
 }
 
 func main() {
-	os.Exit(compare("swagger.json", productionURL))
+	os.Exit(compare(productionURL))
 }
