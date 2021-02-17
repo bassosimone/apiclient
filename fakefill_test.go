@@ -7,9 +7,12 @@ import (
 	"time"
 )
 
-// fakeFill fills specific data structures with random data. We use
-// this implementation to initialize data in our model. The code has
-// been written with that in mind and may require some hammering in
+// fakeFill fills specific data structures with random data. The only
+// exception to this behaviour is time.Time, which is instead filled
+// with the current time plus a small random number of seconds.
+//
+// We use this implementation to initialize data in our model. The code
+// has been written with that in mind. It will require some hammering in
 // case we extend the model with new field types.
 type fakeFill struct {
 	mu  sync.Mutex
@@ -80,6 +83,13 @@ func (ff *fakeFill) doFill(v reflect.Value) {
 	case reflect.Bool:
 		v.SetBool(ff.getRandomBool())
 	case reflect.Struct:
+		if v.Type().String() == "time.Time" {
+			// Implementation note: we treat the time specially
+			// and we avoid attempting to set its fields.
+			v.Set(reflect.ValueOf(time.Now().Add(
+				time.Duration(ff.getRandomSmallPositiveInt()) * time.Second)))
+			return
+		}
 		for idx := 0; idx < v.NumField(); idx++ {
 			ff.doFill(v.Field(idx)) // visit all fields
 		}
