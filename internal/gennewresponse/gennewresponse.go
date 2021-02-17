@@ -9,11 +9,13 @@ import (
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typevalueinfo := reflectx.Must(reflectx.NewTypeValueInfo(desc.Response))
-	apiname := strings.Replace(typevalueinfo.TypeName(), "Response", "API", 1)
+	name := strings.Replace(typevalueinfo.TypeName(), "Response", "", 1)
+	apiname := strcasex.ToLowerCamel(name) + "API"
 	fmtx.Fprintf(filep, "func (api *%s) newResponse", apiname)
 	fmtx.Fprint(filep, "(resp *http.Response, err error)")
 	fmtx.Fprintf(filep, " (%s, error) {\n", typevalueinfo.AsReturnType())

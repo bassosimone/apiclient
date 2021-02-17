@@ -9,13 +9,14 @@ import (
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
 func getapiame(in interface{}) string {
 	name := reflectx.Must(reflectx.NewTypeValueInfo(in)).TypeName()
 	name = strings.Replace(name, "Request", "", 1)
 	name = strings.Replace(name, "Response", "", 1)
-	return name
+	return strcasex.ToLowerCamel(name)
 }
 
 func genapitype(filep osx.File, desc *apimodel.Descriptor) {

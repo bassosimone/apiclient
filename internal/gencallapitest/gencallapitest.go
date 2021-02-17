@@ -11,6 +11,7 @@ import (
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
 func getapiame(in interface{}) string {
@@ -46,7 +47,7 @@ func genRequestAndMaybeMandatoryFields(filep osx.File, apiname string, req *refl
 func genTestInvalidURL(filep osx.File, desc *apimodel.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sInvalidURL(t *testing.T) {\n", apiname)
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"\\t\", // invalid\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
@@ -68,7 +69,7 @@ func genTestWithMissingAuthorizer(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithMissingAuthorizer(t *testing.T) {\n", apiname)
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmtx.Fprint(filep, "\t}\n")
 	fmtx.Fprint(filep, "\tctx := context.Background()\n")
@@ -89,7 +90,7 @@ func genTestWithHTTPErr(filep osx.File, desc *apimodel.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithHTTPErr(t *testing.T) {\n", apiname)
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Err: ErrMocked}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -114,7 +115,7 @@ func genTestMarshalErr(filep osx.File, desc *apimodel.Descriptor) {
 	}
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sMarshalErr(t *testing.T) {\n", apiname)
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	fmtx.Fprintf(filep, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmtx.Fprintf(filep, "\t\tmarshal: func(v interface{}) ([]byte, error) {\n")
 	fmtx.Fprintf(filep, "\t\t\treturn nil, ErrMocked\n")
@@ -137,7 +138,7 @@ func genTestWithNewRequestErr(filep osx.File, desc *apimodel.Descriptor) {
 	req := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request))
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWithNewRequestErr(t *testing.T) {\n", apiname)
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -163,7 +164,7 @@ func genTestWith400(filep osx.File, desc *apimodel.Descriptor) {
 	apiname := getapiame(desc.Response)
 	fmtx.Fprintf(filep, "func Test%sWith400(t *testing.T) {\n", apiname)
 	fmtx.Fprint(filep, "\tclnt := &MockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -190,7 +191,7 @@ func genTestWithResponseBodyReadErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableBodyWithFailure{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -217,7 +218,7 @@ func genTestWithUnmarshalFailure(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableEmptyBody{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -247,7 +248,7 @@ func genTestRoundTrip(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableEmptyBody{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -278,7 +279,7 @@ func genTestResponseLiteralNull(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -310,7 +311,7 @@ func genTestMandatoryFields(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -340,7 +341,7 @@ func genTestTemplateParseErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}
@@ -373,7 +374,7 @@ func genTestTemplateExecuteErr(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprint(filep, "\t\tStatusCode: 200,\n")
 	fmtx.Fprint(filep, "\t\tBody: &MockableLiteralNull{},\n")
 	fmtx.Fprint(filep, "\t}}\n")
-	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", apiname)
+	fmtx.Fprintf(filep, "\tapi := &%sAPI{\n", strcasex.ToLowerCamel(apiname))
 	if desc.RequiresLogin == true {
 		fmtx.Fprint(filep, "\t\tAuthorizer:      NewStaticAuthorizer(\"fakeToken\"),\n")
 	}

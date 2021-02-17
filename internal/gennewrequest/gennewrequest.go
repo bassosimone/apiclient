@@ -11,6 +11,7 @@ import (
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
 func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
@@ -23,7 +24,8 @@ func gettags(in interface{}, tagName string) []*reflectx.FieldInfo {
 
 func genbeginfunc(filep osx.File, desc *apimodel.Descriptor) {
 	typename := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
-	apiname := strings.Replace(typename, "Request", "API", 1)
+	name := strings.Replace(typename, "Request", "", 1)
+	apiname := strcasex.ToLowerCamel(name) + "API"
 	fmtx.Fprintf(filep, "func (api *%s) newRequest", apiname)
 	fmtx.Fprint(filep, "(ctx context.Context, ")
 	fmtx.Fprint(filep, "baseURL string, ")

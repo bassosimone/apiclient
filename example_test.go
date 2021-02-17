@@ -8,25 +8,25 @@ import (
 	"github.com/bassosimone/apiclient"
 )
 
-func ExampleURLsAPI_Call() {
-	api := apiclient.NewURLsAPI(&apiclient.Client{})
+func ExampleClient_URLs() {
+	clnt := &apiclient.Client{}
 	request := &apiclient.URLsRequest{
 		CountryCode: "IT",
 		Limit:       14,
 	}
 	ctx := context.Background()
-	response, err := api.Call(ctx, request)
+	response, err := clnt.URLs(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("%+v", response)
 }
 
-func ExampleTorTargetsAPI_Call() {
-	api := apiclient.NewTorTargetsAPI(&apiclient.Client{})
+func ExampleClient_TorTargets() {
+	clnt := &apiclient.Client{}
 	request := &apiclient.TorTargetsRequest{}
 	ctx := context.Background()
-	response, err := api.Call(ctx, request)
+	response, err := clnt.TorTargets(ctx, request)
 	if err != nil {
 		log.Fatal(err)
 	}

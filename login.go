@@ -84,7 +84,7 @@ func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error)
 	if err != nil {
 		return "", err
 	}
-	resp, err := NewLoginAPI(c).Call(ctx, req)
+	resp, err := newLoginAPI(c).Call(ctx, req)
 	if err != nil {
 		if errors.Is(err, ErrHTTPFailure) {
 			// This happens if we get a 401 Unauthorized because for
@@ -146,7 +146,7 @@ func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (str
 	if err != nil {
 		return "", err
 	}
-	resp, err := NewRegisterAPI(c).Call(ctx, req)
+	resp, err := newRegisterAPI(c).Call(ctx, req)
 	if err != nil {
 		return "", err
 	}

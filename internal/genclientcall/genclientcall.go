@@ -29,7 +29,7 @@ func generate(filep osx.File, desc *apimodel.Descriptor) {
 	fmtx.Fprintf(filep, "// %s calls the %s API.\n", apiname, apiname)
 	fmtx.Fprintf(filep, "func (c *Client) %s(", apiname)
 	fmtx.Fprintf(filep, "ctx context.Context, req *%s) (%s, error) {\n", reqname, resp.AsReturnType())
-	fmtx.Fprintf(filep, "\treturn New%sAPI(c).Call(ctx, req)\n", apiname)
+	fmtx.Fprintf(filep, "\treturn new%sAPI(c).Call(ctx, req)\n", apiname)
 	fmtx.Fprintf(filep, "}\n\n")
 }
 

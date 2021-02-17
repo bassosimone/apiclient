@@ -9,15 +9,18 @@ import (
 	"github.com/bassosimone/apiclient/internal/fmtx"
 	"github.com/bassosimone/apiclient/internal/osx"
 	"github.com/bassosimone/apiclient/internal/reflectx"
+	"github.com/bassosimone/apiclient/internal/strcasex"
 )
 
 func genapi(filep osx.File, desc *apimodel.Descriptor) {
 	typename := reflectx.Must(reflectx.NewTypeValueInfo(desc.Request)).TypeName()
-	apiname := strings.Replace(typename, "Request", "API", 1)
-	fmtx.Fprintf(filep, "// New%s creates a new instance of %s. This factory\n", apiname, apiname)
+	name := strings.Replace(typename, "Request", "", 1)
+	apiname := name + "API"
+	apilower := strcasex.ToLowerCamel(name) + "API"
+	fmtx.Fprintf(filep, "// new%s creates a new instance of %s. This factory\n", apiname, apilower)
 	fmtx.Fprint(filep, "// always returns a valid, non-nil instance.\n")
-	fmtx.Fprintf(filep, "func New%s(clnt *Client) *%s {\n", apiname, apiname)
-	fmtx.Fprintf(filep, "\tapi := &%s{\n", apiname)
+	fmtx.Fprintf(filep, "func new%s(clnt *Client) *%s {\n", apiname, apilower)
+	fmtx.Fprintf(filep, "\tapi := &%s{\n", apilower)
 	if desc.RequiresLogin {
 		fmtx.Fprintf(filep, "\t\tAuthorizer: clnt,\n")
 	}

@@ -10,7 +10,7 @@ import (
 // TODO(bassosimone): write test for URL path
 
 func TestMeasurementMetaNewRequestRLOkay(t *testing.T) {
-	api := &MeasurementMetaAPI{}
+	api := &measurementMetaAPI{}
 	apireq := &MeasurementMetaRequest{
 		ReportID: "abc",
 		Full:     true,
@@ -34,7 +34,7 @@ func TestMeasurementMetaNewRequestRLOkay(t *testing.T) {
 }
 
 func TestURLsNewRequestURLOkay(t *testing.T) {
-	api := &URLsAPI{}
+	api := &urlsAPI{}
 	apireq := &URLsRequest{
 		CategoryCodes: "HUMR,HACK",
 		CountryCode:   "IT",
