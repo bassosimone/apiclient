@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/cmd/internal/fatalx"
 )
 
 // fprintf is like fmt.fprintf but calls log.Fatal on failure.

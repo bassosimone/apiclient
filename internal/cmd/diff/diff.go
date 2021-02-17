@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/bassosimone/apiclient"
-	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/cmd/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/openapi"
 	"github.com/hexops/gotextdiff"
 	"github.com/hexops/gotextdiff/myers"

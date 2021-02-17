@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/apiclient/internal/cmd/generator/internal/spec"
-	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/cmd/internal/fatalx"
 	"github.com/bassosimone/apiclient/internal/openapi"
 )
 

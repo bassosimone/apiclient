@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/bassosimone/apiclient/internal/fatalx"
+	"github.com/bassosimone/apiclient/internal/cmd/internal/fatalx"
 )
 
 // file is an open file
