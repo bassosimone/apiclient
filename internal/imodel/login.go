@@ -1,4 +1,5 @@
-// Package imodel contains the internal data model
+// Package imodel contains the internal data model. We use such a model
+// to represent data structures that shan't be exposed to users.
 package imodel
 
 import "time"
