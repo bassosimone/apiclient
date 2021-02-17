@@ -1,4 +1,4 @@
-// Command diffmodel compares our model and the server model. It emits
+// Command diff compares our model and the server model. It emits
 // a diff of the changes on the standard output. If there are no changes,
 // this command exits with the zero exit code. Otherwise it exits with
 // a nonzero exit code, thus signaling that there is a mismatch.
