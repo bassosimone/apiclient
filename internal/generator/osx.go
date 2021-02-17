@@ -7,15 +7,15 @@ import (
 	"github.com/bassosimone/apiclient/internal/fatalx"
 )
 
-// File is an open file
-type File interface {
+// file is an open file
+type file interface {
 	WriteString(s string)
 	Close()
 	io.Writer
 }
 
-// MustCreate creates a new File or calls log.Fatal
-func MustCreate(pathname string) File {
+// mustCreateFile creates a new File or calls log.Fatal
+func mustCreateFile(pathname string) file {
 	filep, err := os.Create(pathname)
 	fatalx.OnError(err, "os.Create failed")
 	return &fileWrapper{File: filep}

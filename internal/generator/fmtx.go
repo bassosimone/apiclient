@@ -7,14 +7,14 @@ import (
 	"github.com/bassosimone/apiclient/internal/fatalx"
 )
 
-// Fprintf is like fmt.Fprintf but calls log.Fatal on failure.
-func Fprintf(w io.Writer, format string, v ...interface{}) {
+// fprintf is like fmt.fprintf but calls log.Fatal on failure.
+func fprintf(w io.Writer, format string, v ...interface{}) {
 	_, err := fmt.Fprintf(w, format, v...)
 	fatalx.OnError(err, "fmt.Fprintf failed")
 }
 
-// Fprint is like fmt.Fprint but calls log.Fatal on failure.
-func Fprint(w io.Writer, v ...interface{}) {
+// fprint is like fmt.fprint but calls log.Fatal on failure.
+func fprint(w io.Writer, v ...interface{}) {
 	_, err := fmt.Fprint(w, v...)
 	fatalx.OnError(err, "fmt.Fprint failed")
 }
