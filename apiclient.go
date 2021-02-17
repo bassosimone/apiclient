@@ -70,6 +70,10 @@ func newQueryFieldInt64(v int64) string {
 	return fmt.Sprintf("%d", v)
 }
 
+func newAuthorizationHeader(token string) string {
+	return fmt.Sprintf("Bearer %s", token)
+}
+
 // Swagger returns the API swagger v2.0 as a serialized JSON.
 func Swagger() string {
 	return swagger

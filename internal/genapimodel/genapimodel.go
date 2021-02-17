@@ -20,7 +20,6 @@ func main() {
 	fmtx.Fprint(filep, "\t\"bytes\"\n")
 	fmtx.Fprint(filep, "\t\"context\"\n")
 	fmtx.Fprint(filep, "\t\"encoding/json\"\n")
-	fmtx.Fprint(filep, "\t\"fmt\"\n")
 	fmtx.Fprint(filep, "\t\"io/ioutil\"\n")
 	fmtx.Fprint(filep, "\t\"io\"\n")
 	fmtx.Fprint(filep, "\t\"net/http\"\n")

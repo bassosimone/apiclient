@@ -39,7 +39,7 @@ func (d *Descriptor) GenAPICall() string {
 		fmt.Fprint(&sb, "\tif err != nil {\n")
 		fmt.Fprint(&sb, "\t\treturn nil, err\n")
 		fmt.Fprint(&sb, "\t}\n")
-		fmt.Fprintf(&sb, "\tauthorization := fmt.Sprintf(\"Bearer %%s\", token)\n")
+		fmt.Fprintf(&sb, "\tauthorization := newAuthorizationHeader(token)\n")
 		fmt.Fprint(&sb, "\treq.Header.Add(\"Authorization\", authorization)\n")
 	}
 
