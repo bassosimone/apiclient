@@ -92,7 +92,7 @@ func TestCacheClientDoWithCachedResponse(t *testing.T) {
 			RawQuery: "foo=bar&baz=1",
 		},
 		Method: "GET",
-		Body:   io.NopCloser(strings.NewReader("{\"antani\":true}")),
+		Body:   ioutil.NopCloser(strings.NewReader("{\"antani\":true}")),
 	}
 	recs := []cacheRecord{{
 		Key: cacheRecordKey{
