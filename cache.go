@@ -3,13 +3,20 @@ package apiclient
 import (
 	"bytes"
 	"encoding/gob"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strings"
 )
+
+type decoder interface {
+	Decode(e interface{}) error
+}
+
+type encoder interface {
+	Encode(e interface{}) error
+}
 
 // cacheClient is an HTTPClient that caches responses
 // on disk (or memory) using a KVStore. Note that this
@@ -19,6 +26,8 @@ import (
 type cacheClient struct {
 	HTTPClient
 	KVStore
+	newDecoder func(r io.Reader) decoder
+	newEncoder func(w io.Writer) encoder
 }
 
 // cacheRecordKey is the key of a cacheRecord.
@@ -88,9 +97,8 @@ func (c *cacheClient) Do(req *http.Request) (*http.Response, error) {
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close() // tell the real transport we're done here
-	if errors.Is(err, io.EOF) && resp.Close {
-		err = nil // treat EOF here like success
-	}
+	// TODO(bassosimone): do we need to be concerned about the
+	// body here being terminated by EOF?
 	if err != nil {
 		return c.cachedResponse(ckey, err)
 	}
@@ -109,7 +117,7 @@ func (c *cacheClient) cachedResponse(ckey *cacheRecordKey, httpErr error) (*http
 				StatusCode: 200,
 				Header:     http.Header{},
 			}
-			resp.Header.Set("X-APIClient-Cache", "HIT")
+			resp.Header.Set("X-OONI-APIClient-Cache", "FALLBACK")
 			resp.Body = ioutil.NopCloser(strings.NewReader(entry.Response))
 			return resp, nil
 		}
@@ -127,9 +135,8 @@ func (c *cacheClient) addToCache(ckey *cacheRecordKey, body string) error {
 		if !reflect.DeepEqual(*ckey, entry.Key) {
 			out = append(out, entry)
 		}
-		if idx >= maxCacheIndex {
-			// we wanna keep the cache size bounded
-			break
+		if idx >= maxCacheIndex-2 /* counting from zero plus extra entry */ {
+			break // keep the cache bounded
 		}
 	}
 	return c.writeCache(out)
@@ -144,16 +151,30 @@ func (c *cacheClient) readCache() cacheList {
 		return cacheList{}
 	}
 	var cl cacheList
-	if err := gob.NewDecoder(bytes.NewReader(data)).Decode(&cl); err != nil {
+	if err := c.makeNewDecoder(bytes.NewReader(data)).Decode(&cl); err != nil {
 		return cacheList{}
 	}
 	return cl
 }
 
+func (c *cacheClient) makeNewDecoder(r io.Reader) decoder {
+	if c.newDecoder != nil {
+		return c.newDecoder(r)
+	}
+	return gob.NewDecoder(r)
+}
+
 func (c *cacheClient) writeCache(cl cacheList) error {
 	var bw bytes.Buffer
-	if err := gob.NewEncoder(&bw).Encode(cl); err != nil {
+	if err := c.makeNewEncoder(&bw).Encode(cl); err != nil {
 		return err
 	}
 	return c.KVStore.Set(cacheKey, bw.Bytes())
+}
+
+func (c *cacheClient) makeNewEncoder(w io.Writer) encoder {
+	if c.newEncoder != nil {
+		return c.newEncoder(w)
+	}
+	return gob.NewEncoder(w)
 }
