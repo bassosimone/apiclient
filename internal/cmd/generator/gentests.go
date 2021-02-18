@@ -26,6 +26,7 @@ func genTests(filep file) {
 	fprint(filep, "\n")
 	fprint(filep, "\t\"github.com/bassosimone/apiclient/internal/imodel\"\n")
 	fprint(filep, "\t\"github.com/bassosimone/apiclient/model\"\n")
+	fprint(filep, "\t\"github.com/google/go-cmp/cmp\"\n")
 	fprint(filep, ")\n\n")
 	fprint(filep, "//go:generate go run ./internal/cmd/generator\n\n")
 	for _, desc := range spec.Descriptors {

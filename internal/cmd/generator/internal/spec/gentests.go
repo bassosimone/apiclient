@@ -378,6 +378,7 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tcount int32\n")
 	fmt.Fprint(sb, "\tmethod string\n")
 	fmt.Fprint(sb, "\tmu sync.Mutex\n")
+	fmt.Fprintf(sb, "\tresp %s\n", d.responseTypeName())
 	fmt.Fprint(sb, "\turl *url.URL\n")
 	fmt.Fprint(sb, "}\n\n")
 	fmt.Fprintf(sb, "func (h *handle%s) ServeHTTP(w http.ResponseWriter, r *http.Request) {\n", d.Name)
@@ -406,6 +407,12 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	}
 	fmt.Fprint(sb, "\tff := fakeFill{}\n")
 	fmt.Fprint(sb, "\tff.fill(&out)\n")
+	switch d.responseTypeKind() {
+	case reflect.Struct:
+		fmt.Fprint(sb, "\th.resp = &out\n")
+	case reflect.Map:
+		fmt.Fprint(sb, "\th.resp = out\n")
+	}
 	fmt.Fprint(sb, "\tdata, err := json.Marshal(out)\n")
 	fmt.Fprint(sb, "\tif err != nil {\n")
 	fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
@@ -448,6 +455,9 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp == nil {\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(\"expected non-nil resp\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif diff := cmp.Diff(resp, handler.resp); diff != \"\"{\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(diff)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "}\n\n")
 }
