@@ -149,18 +149,23 @@ func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
 	}, nil
 }
 
-// doRegisterAndLogin executes the register and login flows.
-func (c *Client) doRegisterAndLogin(ctx context.Context, lm *loginManager) (string, error) {
+// doRegister performs the registration.
+func (c *Client) doRegister(ctx context.Context, lm *loginManager) error {
 	req, err := c.newRegisterRequest()
 	if err != nil {
-		return "", err
+		return err
 	}
 	resp, err := newRegisterAPI(c).call(ctx, req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	lm.state.ClientID, lm.state.Password = resp.ClientID, req.Password
-	if err := lm.writeback(); err != nil {
+	return lm.writeback()
+}
+
+// doRegisterAndLogin executes the register and login flows.
+func (c *Client) doRegisterAndLogin(ctx context.Context, lm *loginManager) (string, error) {
+	if err := c.doRegister(ctx, lm); err != nil {
 		return "", err
 	}
 	return c.doLogin(ctx, lm)
