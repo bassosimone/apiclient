@@ -79,3 +79,11 @@ type Client struct {
 	// will send no User Agent to the server.
 	UserAgent string
 }
+
+// httpClient returns the configured client or the default.
+func (c *Client) httpClient() HTTPClient {
+	if c.HTTPClient != nil {
+		return c.HTTPClient
+	}
+	return http.DefaultClient
+}

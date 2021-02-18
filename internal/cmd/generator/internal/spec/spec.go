@@ -17,6 +17,7 @@ type URLPath struct {
 
 // Descriptor is an API descriptor.
 type Descriptor struct {
+	Cache         bool
 	Name          string
 	Method        string
 	URLPath       URLPath
@@ -34,6 +35,7 @@ var Descriptors = []Descriptor{{
 	Request:  &model.CheckReportIDRequest{},
 	Response: &model.CheckReportIDResponse{},
 }, {
+	Cache:    true,
 	Name:     "CheckIn",
 	Method:   "POST",
 	URLPath:  URLPath{Value: "/api/v1/check-in"},
@@ -60,12 +62,14 @@ var Descriptors = []Descriptor{{
 	Request:  &imodel.RegisterRequest{},
 	Response: &imodel.RegisterResponse{},
 }, {
+	Cache:    true,
 	Name:     "TestHelpers",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-helpers"},
 	Request:  &model.TestHelpersRequest{},
 	Response: model.TestHelpersResponse{},
 }, {
+	Cache:         true,
 	Name:          "PsiphonConfig",
 	Method:        "GET",
 	URLPath:       URLPath{Value: "/api/v1/test-list/psiphon-config"},
@@ -73,6 +77,7 @@ var Descriptors = []Descriptor{{
 	Response:      model.PsiphonConfigResponse{},
 	RequiresLogin: true,
 }, {
+	Cache:         true,
 	Name:          "TorTargets",
 	Method:        "GET",
 	URLPath:       URLPath{Value: "/api/v1/test-list/tor-targets"},
@@ -80,6 +85,7 @@ var Descriptors = []Descriptor{{
 	Response:      model.TorTargetsResponse{},
 	RequiresLogin: true,
 }, {
+	Cache:    true,
 	Name:     "URLs",
 	Method:   "GET",
 	URLPath:  URLPath{Value: "/api/v1/test-list/urls"},
