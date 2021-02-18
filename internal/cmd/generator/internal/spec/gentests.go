@@ -375,6 +375,10 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 		return // we only test public APIs here
 	}
 	fmt.Fprintf(sb, "type handle%s struct{\n", d.Name)
+	fmt.Fprint(sb, "\taccept string\n")
+	if d.RequiresLogin {
+		fmt.Fprint(sb, "\tauthorization string\n")
+	}
 	if d.Method == "POST" {
 		switch d.requestTypeKind() {
 		case reflect.Struct:
@@ -388,6 +392,7 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tmu sync.Mutex\n")
 	fmt.Fprintf(sb, "\tresp %s\n", d.responseTypeName())
 	fmt.Fprint(sb, "\turl *url.URL\n")
+	fmt.Fprint(sb, "\tuserAgent string\n")
 	fmt.Fprint(sb, "}\n\n")
 	fmt.Fprintf(sb, "func (h *handle%s) ServeHTTP(w http.ResponseWriter, r *http.Request) {\n", d.Name)
 	fmt.Fprint(sb, "\tdefer h.mu.Unlock()\n")
@@ -399,6 +404,11 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\th.count++\n")
 	fmt.Fprint(sb, "\th.method = r.Method\n")
 	fmt.Fprint(sb, "\th.url = r.URL\n")
+	fmt.Fprint(sb, "\th.accept = r.Header.Get(\"Accept\")\n")
+	if d.RequiresLogin {
+		fmt.Fprint(sb, "\th.authorization = r.Header.Get(\"Authorization\")\n")
+	}
+	fmt.Fprint(sb, "\th.userAgent = r.Header.Get(\"User-Agent\")\n")
 	if d.Method == "POST" {
 		fmt.Fprint(sb, "\treqbody, err := ioutil.ReadAll(r.Body)\n")
 		fmt.Fprint(sb, "\tif err != nil {\n")
@@ -457,6 +467,7 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tclnt := &Client{\n")
 	fmt.Fprint(sb, "\t\tBaseURL: srvr.URL,\n")
 	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tff.fill(&clnt.UserAgent)\n")
 	if d.RequiresLogin == true {
 		fmt.Fprint(sb, "\tkvstore := &memkvstore{}\n")
 		fmt.Fprint(sb, "\t// hand-craft a state that does not require relogin\n")
@@ -494,6 +505,18 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	}
 	fmt.Fprint(sb, "\tif diff := cmp.Diff(resp, handler.resp); diff != \"\"{\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(diff)\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif handler.accept != \"application/json\" {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected accept header\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	if d.RequiresLogin {
+		fmt.Fprint(sb, "\texpectAuth := newAuthorizationHeader(lm.state.Token)\n")
+		fmt.Fprint(sb, "\tif handler.authorization != expectAuth {\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected authorization header\")\n")
+		fmt.Fprint(sb, "\t}\n")
+	}
+	fmt.Fprint(sb, "\tif handler.userAgent != clnt.UserAgent {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected User-Agent header\")\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "}\n\n")
 }
