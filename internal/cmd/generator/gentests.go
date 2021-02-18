@@ -19,6 +19,7 @@ func genTests(filep file) {
 	fprint(filep, "\t\"net/http/httptest\"\n")
 	fprint(filep, "\t\"net/http\"\n")
 	fprint(filep, "\t\"net/url\"\n")
+	fprint(filep, "\t\"reflect\"\n")
 	fprint(filep, "\t\"strings\"\n")
 	fprint(filep, "\t\"sync\"\n")
 	fprint(filep, "\t\"testing\"\n")

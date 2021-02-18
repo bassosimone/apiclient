@@ -456,6 +456,14 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tif resp == nil {\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(\"expected non-nil resp\")\n")
 	fmt.Fprint(sb, "\t}\n")
+	switch d.responseTypeKind() {
+	case reflect.Struct:
+		fmt.Fprint(sb, "\tif reflect.ValueOf(*resp).IsZero() {\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(\"server returned a zero structure\")\n")
+		fmt.Fprint(sb, "\t}\n")
+	case reflect.Map:
+		// nothing
+	}
 	fmt.Fprint(sb, "\tif diff := cmp.Diff(resp, handler.resp); diff != \"\"{\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(diff)\n")
 	fmt.Fprint(sb, "\t}\n")
