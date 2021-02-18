@@ -367,6 +367,91 @@ func (d *Descriptor) genTestWithFailingAuthorizer(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
+func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
+	if d.Private {
+		return // we only test public APIs here
+	}
+	fmt.Fprintf(sb, "type handle%s struct{\n", d.Name)
+	if d.Method == "POST" {
+		fmt.Fprint(sb, "\tbody []byte\n")
+	}
+	fmt.Fprint(sb, "\tcount int32\n")
+	fmt.Fprint(sb, "\tmethod string\n")
+	fmt.Fprint(sb, "\tmu sync.Mutex\n")
+	fmt.Fprint(sb, "\turl *url.URL\n")
+	fmt.Fprint(sb, "}\n\n")
+	fmt.Fprintf(sb, "func (h *handle%s) ServeHTTP(w http.ResponseWriter, r *http.Request) {\n", d.Name)
+	fmt.Fprint(sb, "\tdefer h.mu.Unlock()\n")
+	fmt.Fprint(sb, "\th.mu.Lock()\n")
+	fmt.Fprint(sb, "\tif h.count > 0 {\n")
+	fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
+	fmt.Fprint(sb, "\t\treturn\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\th.count++\n")
+	fmt.Fprint(sb, "\th.method = r.Method\n")
+	fmt.Fprint(sb, "\th.url = r.URL\n")
+	if d.Method == "POST" {
+		fmt.Fprint(sb, "\tbody, err := ioutil.ReadAll(r.Body)\n")
+		fmt.Fprint(sb, "\tif err != nil {\n")
+		fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
+		fmt.Fprint(sb, "\t\treturn\n")
+		fmt.Fprint(sb, "\t}\n")
+		fmt.Fprint(sb, "\th.body = body\n")
+	}
+	switch d.responseTypeKind() {
+	case reflect.Struct:
+		fmt.Fprintf(sb, "\tvar out %s\n", d.responseTypeNameAsStruct())
+	case reflect.Map:
+		fmt.Fprintf(sb, "\tvar out %s\n", d.responseTypeName())
+	}
+	fmt.Fprint(sb, "\tff := fakeFill{}\n")
+	fmt.Fprint(sb, "\tff.fill(&out)\n")
+	fmt.Fprint(sb, "\tdata, err := json.Marshal(out)\n")
+	fmt.Fprint(sb, "\tif err != nil {\n")
+	fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
+	fmt.Fprint(sb, "\t\treturn\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tw.Write(data)\n")
+	fmt.Fprint(sb, "}\n\n")
+}
+
+func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
+	if d.Private {
+		return // we only test public APIs here
+	}
+	fmt.Fprintf(sb, "func TestClientWithHandlerFor%s(t *testing.T) {\n", d.Name)
+	fmt.Fprint(sb, "\t// setup\n")
+	fmt.Fprintf(sb, "\thandler := &handle%s{}\n", d.Name)
+	fmt.Fprint(sb, "\tsrvr := httptest.NewServer(handler)\n")
+	fmt.Fprint(sb, "\tdefer srvr.Close()\n")
+	d.genTestNewRequest(sb)
+	fmt.Fprint(sb, "\tclnt := &Client{\n")
+	fmt.Fprint(sb, "\t\tBaseURL: srvr.URL,\n")
+	fmt.Fprint(sb, "\t}\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\tkvstore := &memkvstore{}\n")
+		fmt.Fprint(sb, "\t// hand-craft a state that does not require relogin\n")
+		fmt.Fprint(sb, "\tlm := &loginManager{kvstore: kvstore, state: loginState{\n")
+		fmt.Fprint(sb, "\t\tClientID: \"077c3985-b228-4df3-af22-bc3377c7a376\",\n")
+		fmt.Fprint(sb, "\t\tExpire: time.Now().Add(3600*time.Second),\n")
+		fmt.Fprint(sb, "\t\tPassword: \"077c3985-b228-4df3-af22-bc3377c7a376\",\n")
+		fmt.Fprint(sb, "\t\tToken: \"077c3985-b228-4df3-af22-bc3377c7a376\",\n")
+		fmt.Fprint(sb, "\t}}\n")
+		fmt.Fprint(sb, "\tlm.writeback() // memory never fails\n")
+		fmt.Fprint(sb, "\tclnt.KVStore = kvstore\n")
+	}
+	fmt.Fprint(sb, "\t// issue request\n")
+	fmt.Fprint(sb, "\tctx := context.Background()\n")
+	fmt.Fprintf(sb, "\tresp, err := clnt.%s(ctx, req)\n", d.Name)
+	fmt.Fprint(sb, "\tif err != nil {\n")
+	fmt.Fprintf(sb, "\t\tt.Fatal(err)\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif resp == nil {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"expected non-nil resp\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "}\n\n")
+}
+
 // GenTests generates tests for generated code.
 func (d *Descriptor) GenTests() string {
 	var sb strings.Builder
@@ -384,5 +469,7 @@ func (d *Descriptor) GenTests() string {
 	d.genTestTemplateParseErr(&sb)
 	d.genTestTemplateExecuteErr(&sb)
 	d.genTestWithFailingAuthorizer(&sb)
+	d.genHandlerForPublicAPI(&sb)
+	d.genTestClientWithHandlerForPublicAPI(&sb)
 	return sb.String()
 }

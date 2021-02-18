@@ -36,6 +36,9 @@ func (kvs *memkvstore) Get(key string) ([]byte, error) {
 func (kvs *memkvstore) Set(key string, value []byte) error {
 	defer kvs.mu.Unlock()
 	kvs.mu.Lock()
+	if kvs.m == nil {
+		kvs.m = make(map[string][]byte)
+	}
 	kvs.m[key] = value
 	return nil
 }

@@ -19,28 +19,31 @@ type loginState struct {
 	Expire   time.Time
 	Password string
 	Token    string
-	kvstore  KVStore
+}
+
+type loginManager struct {
+	kvstore KVStore
+	state   loginState
 }
 
 // loginKey is the key with which loginState is saved
 // into the key-value store used by Client.
 const loginKey = "orchestra.state"
 
-// newLoginState always returns a valid loginState data structure
+// newLoginManager always returns a valid loginManager structure
 // that may contain content from the kvstore. If there's no content
 // in the kvstore, or the content is corrupt, then we return an
 // empty loginState data structure.
-func newLoginState(kvstore KVStore) *loginState {
+func newLoginManager(kvstore KVStore) *loginManager {
 	data, err := kvstore.Get(loginKey)
 	if err != nil {
-		return &loginState{kvstore: kvstore}
+		return &loginManager{kvstore: kvstore}
 	}
 	var ls loginState
 	if err := json.Unmarshal(data, &ls); err != nil {
-		return &loginState{kvstore: kvstore}
+		return &loginManager{kvstore: kvstore}
 	}
-	ls.kvstore = kvstore
-	return &ls
+	return &loginManager{kvstore: kvstore, state: ls}
 }
 
 // This list contains the errors returned by login code.
@@ -53,36 +56,39 @@ var (
 
 // token returns the loginState token, if valid, or an
 // error if the token has expired or is not valid.
-func (ls *loginState) token() (string, error) {
-	if ls.Token == "" {
+func (lm *loginManager) token() (string, error) {
+	if lm.state.Token == "" {
 		return "", errLoginTokenEmpty
 	}
-	if time.Now().Add(30 * time.Second).After(ls.Expire) {
+	if time.Now().Add(30 * time.Second).After(lm.state.Expire) {
 		return "", errLoginTokenExpired
 	}
-	return ls.Token, nil
+	return lm.state.Token, nil
 }
 
 // loginRequest returns a LoginRequest for the current loginState
 // or an error if we don't have enough information.
-func (ls *loginState) loginRequest() (*imodel.LoginRequest, error) {
-	if ls.ClientID == "" || ls.Password == "" {
+func (lm *loginManager) loginRequest() (*imodel.LoginRequest, error) {
+	if lm.state.ClientID == "" || lm.state.Password == "" {
 		return nil, errLoginNotRegistered
 	}
-	return &imodel.LoginRequest{ClientID: ls.ClientID, Password: ls.Password}, nil
+	return &imodel.LoginRequest{
+		ClientID: lm.state.ClientID,
+		Password: lm.state.Password,
+	}, nil
 }
 
-func (ls *loginState) writeback() error {
-	data, err := json.Marshal(ls)
+func (lm *loginManager) writeback() error {
+	data, err := json.Marshal(lm.state)
 	if err != nil {
 		return err
 	}
-	return ls.kvstore.Set(loginKey, data)
+	return lm.kvstore.Set(loginKey, data)
 }
 
 // doLogin executes the login flow and returns the token or an error.
-func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error) {
-	req, err := state.loginRequest()
+func (c *Client) doLogin(ctx context.Context, lm *loginManager) (string, error) {
+	req, err := lm.loginRequest()
 	if err != nil {
 		return "", err
 	}
@@ -96,11 +102,11 @@ func (c *Client) doLogin(ctx context.Context, state *loginState) (string, error)
 		}
 		return "", err
 	}
-	state.Token, state.Expire = resp.Token, resp.Expire
-	if err := state.writeback(); err != nil {
+	lm.state.Token, lm.state.Expire = resp.Token, resp.Expire
+	if err := lm.writeback(); err != nil {
 		return "", err
 	}
-	return state.Token, nil
+	return lm.state.Token, nil
 }
 
 // TODO(bassosimone): it may be useful to hold a file-based mutex
@@ -144,7 +150,7 @@ func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
 }
 
 // doRegisterAndLogin executes the register and login flows.
-func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (string, error) {
+func (c *Client) doRegisterAndLogin(ctx context.Context, lm *loginManager) (string, error) {
 	req, err := c.newRegisterRequest()
 	if err != nil {
 		return "", err
@@ -153,11 +159,11 @@ func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (str
 	if err != nil {
 		return "", err
 	}
-	state.ClientID, state.Password = resp.ClientID, req.Password
-	if err := state.writeback(); err != nil {
+	lm.state.ClientID, lm.state.Password = resp.ClientID, req.Password
+	if err := lm.writeback(); err != nil {
 		return "", err
 	}
-	return c.doLogin(ctx, state)
+	return c.doLogin(ctx, lm)
 }
 
 // maybeRefreshToken implements authorizer.maybeRefreshToken.
@@ -175,12 +181,12 @@ func (c *Client) doRegisterAndLogin(ctx context.Context, state *loginState) (str
 // This implementation should be robust to a change in
 // the backend database where all logins are lost.
 func (c *Client) maybeRefreshToken(ctx context.Context) (string, error) {
-	state := newLoginState(c.kvstore())
-	if token, err := state.token(); err == nil {
+	lm := newLoginManager(c.kvstore())
+	if token, err := lm.token(); err == nil {
 		return token, nil // we already have a good token to use
 	}
-	if token, err := c.doLogin(ctx, state); err == nil {
+	if token, err := c.doLogin(ctx, lm); err == nil {
 		return token, nil // we have relogged in
 	}
-	return c.doRegisterAndLogin(ctx, state)
+	return c.doRegisterAndLogin(ctx, lm)
 }
