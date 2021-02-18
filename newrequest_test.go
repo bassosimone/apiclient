@@ -7,8 +7,6 @@ import (
 	"github.com/bassosimone/apiclient/model"
 )
 
-// TODO(bassosimone): write test for URL path
-
 func TestMeasurementMetaNewRequestURLOkay(t *testing.T) {
 	api := &measurementMetaAPI{}
 	apireq := &model.MeasurementMetaRequest{
