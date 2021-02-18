@@ -518,6 +518,9 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tif handler.userAgent != clnt.UserAgent {\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected User-Agent header\")\n")
 	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprintf(sb, "\tif handler.method != \"%s\" {\n", d.Method)
+	fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected method\")\n")
+	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "}\n\n")
 }
 
