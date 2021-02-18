@@ -29,18 +29,18 @@ func (d *Descriptor) genTestInvalidURL(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
-func (d *Descriptor) genTestWithMissingAuthorizer(sb *strings.Builder) {
+func (d *Descriptor) genTestWithMissingToken(sb *strings.Builder) {
 	if d.RequiresLogin == false {
 		return // does not make sense when login isn't required
 	}
-	fmt.Fprintf(sb, "func Test%sWithMissingAuthorizer(t *testing.T) {\n", d.Name)
+	fmt.Fprintf(sb, "func Test%sWithMissingToken(t *testing.T) {\n", d.Name)
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
 	fmt.Fprintf(sb, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
 	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, errMissingAuthorizer) {\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, errMissingToken) {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tif resp != nil {\n")
@@ -53,11 +53,11 @@ func (d *Descriptor) genTestWithHTTPErr(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWithHTTPErr(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Err: errMocked}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -97,13 +97,13 @@ func (d *Descriptor) genTestMarshalErr(sb *strings.Builder) {
 func (d *Descriptor) genTestWithNewRequestErr(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWithNewRequestErr(t *testing.T) {\n", d.Name)
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tNewRequest: func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error) {\n")
 	fmt.Fprint(sb, "\t\t\treturn nil, errMocked\n")
 	fmt.Fprint(sb, "\t\t},\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -121,11 +121,11 @@ func (d *Descriptor) genTestWith400(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWith400(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -146,11 +146,11 @@ func (d *Descriptor) genTestWithResponseBodyReadErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableBodyWithFailure{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -171,11 +171,11 @@ func (d *Descriptor) genTestWithUnmarshalFailure(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprintf(sb, "\t\tunmarshal: func(b []byte, v interface{}) error {\n")
 	fmt.Fprintf(sb, "\t\t\treturn errMocked\n")
 	fmt.Fprintf(sb, "\t\t},\n")
@@ -199,11 +199,11 @@ func (d *Descriptor) genTestRoundTrip(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -230,11 +230,11 @@ func (d *Descriptor) genTestResponseLiteralNull(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -259,11 +259,11 @@ func (d *Descriptor) genTestMandatoryFields(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	fmt.Fprintf(sb, "\treq := &%s{} // deliberately empty\n", d.requestTypeNameAsStruct())
@@ -287,11 +287,11 @@ func (d *Descriptor) genTestTemplateParseErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t\tnewTemplate: func(name string) textTemplate {\n")
 	fmt.Fprint(sb, "\t\t\treturn &templateParseError{}\n")
 	fmt.Fprint(sb, "\t\t},\n")
@@ -318,42 +318,14 @@ func (d *Descriptor) genTestTemplateExecuteErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t\tBody: &mockableLiteralNull{},\n")
 	fmt.Fprint(sb, "\t}}\n")
 	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      newStaticAuthorizer(\"fakeToken\"),\n")
-	}
 	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
 	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
 	fmt.Fprint(sb, "\t\tnewTemplate: func(name string) textTemplate {\n")
 	fmt.Fprint(sb, "\t\t\treturn &templateExecuteError{}\n")
 	fmt.Fprint(sb, "\t\t},\n")
-	fmt.Fprint(sb, "\t}\n")
-	fmt.Fprint(sb, "\tctx := context.Background()\n")
-	d.genTestNewRequest(sb)
-	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
-	fmt.Fprint(sb, "\tif !errors.Is(err, errMocked) {\n")
-	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
-	fmt.Fprint(sb, "\t}\n")
-	fmt.Fprint(sb, "\tif resp != nil {\n")
-	fmt.Fprint(sb, "\t\tt.Fatal(\"expected nil resp\")\n")
-	fmt.Fprint(sb, "\t}\n")
-	fmt.Fprint(sb, "}\n\n")
-}
-
-func (d *Descriptor) genTestWithFailingAuthorizer(sb *strings.Builder) {
-	if !d.RequiresLogin {
-		return // nothing to test
-	}
-	fmt.Fprintf(sb, "func Test%sWithFailingAuthorizer(t *testing.T) {\n", d.Name)
-	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{\n")
-	fmt.Fprint(sb, "\t\tStatusCode: 200,\n")
-	fmt.Fprint(sb, "\t\tBody: &mockableEmptyBody{},\n")
-	fmt.Fprint(sb, "\t}}\n")
-	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
-	if d.RequiresLogin == true {
-		fmt.Fprint(sb, "\t\tAuthorizer:      &failingAuthorizer{},\n")
-	}
-	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
-	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
 	fmt.Fprint(sb, "\t}\n")
 	fmt.Fprint(sb, "\tctx := context.Background()\n")
 	d.genTestNewRequest(sb)
@@ -579,7 +551,7 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 func (d *Descriptor) GenTests() string {
 	var sb strings.Builder
 	d.genTestInvalidURL(&sb)
-	d.genTestWithMissingAuthorizer(&sb)
+	d.genTestWithMissingToken(&sb)
 	d.genTestWithHTTPErr(&sb)
 	d.genTestMarshalErr(&sb)
 	d.genTestWithNewRequestErr(&sb)
@@ -591,7 +563,6 @@ func (d *Descriptor) GenTests() string {
 	d.genTestMandatoryFields(&sb)
 	d.genTestTemplateParseErr(&sb)
 	d.genTestTemplateExecuteErr(&sb)
-	d.genTestWithFailingAuthorizer(&sb)
 	d.genHandlerForPublicAPI(&sb)
 	d.genTestClientWithHandlerForPublicAPI(&sb)
 	return sb.String()

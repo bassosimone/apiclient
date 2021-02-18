@@ -9,12 +9,12 @@ import (
 func (d *Descriptor) GenAPIType() string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "type %s struct {\n", d.apiStructName())
-	if d.RequiresLogin {
-		fmt.Fprintf(&sb, "\tAuthorizer authorizer\n")
-	}
 	fmt.Fprint(&sb, "\tBaseURL     string\n")
 	fmt.Fprint(&sb, "\tHTTPClient  HTTPClient\n")
 	fmt.Fprint(&sb, "\tNewRequest  func(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error)\n")
+	if d.RequiresLogin {
+		fmt.Fprintf(&sb, "\tToken string\n")
+	}
 	fmt.Fprint(&sb, "\tUserAgent   string\n")
 	fmt.Fprint(&sb, "\tmarshal     func(v interface{}) ([]byte, error)\n")
 	if d.URLPath.IsTemplate {

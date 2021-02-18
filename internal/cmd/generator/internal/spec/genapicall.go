@@ -19,14 +19,10 @@ func (d *Descriptor) GenAPICall() string {
 	fmt.Fprint(&sb, "\treq.Header.Add(\"Accept\", \"application/json\")\n")
 
 	if d.RequiresLogin {
-		fmt.Fprint(&sb, "\tif api.Authorizer == nil {\n")
-		fmt.Fprint(&sb, "\t\treturn nil, errMissingAuthorizer\n")
+		fmt.Fprint(&sb, "\tif api.Token == \"\" {\n")
+		fmt.Fprint(&sb, "\t\treturn nil, errMissingToken\n")
 		fmt.Fprint(&sb, "\t}\n")
-		fmt.Fprint(&sb, "\ttoken, err := api.Authorizer.maybeRefreshToken(ctx)\n")
-		fmt.Fprint(&sb, "\tif err != nil {\n")
-		fmt.Fprint(&sb, "\t\treturn nil, err\n")
-		fmt.Fprint(&sb, "\t}\n")
-		fmt.Fprintf(&sb, "\tauthorization := newAuthorizationHeader(token)\n")
+		fmt.Fprintf(&sb, "\tauthorization := newAuthorizationHeader(api.Token)\n")
 		fmt.Fprint(&sb, "\treq.Header.Add(\"Authorization\", authorization)\n")
 	}
 

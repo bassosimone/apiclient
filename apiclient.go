@@ -42,10 +42,10 @@ import (
 // Errors defined by this package. In addition to these errors, this
 // package may of course return any other stdlib specific error.
 var (
-	ErrHTTPFailure       = errors.New("apiclient: http request failed")
-	ErrJSONLiteralNull   = errors.New("apiclient: server returned us a literal null")
-	ErrEmptyField        = errors.New("apiclient: empty field")
-	errMissingAuthorizer = errors.New("apiclient: missing Authorizer")
+	ErrHTTPFailure     = errors.New("apiclient: http request failed")
+	ErrJSONLiteralNull = errors.New("apiclient: server returned us a literal null")
+	ErrEmptyField      = errors.New("apiclient: empty field")
+	errMissingToken    = errors.New("apiclient: missing authorization token")
 )
 
 // Swagger returns the API swagger v2.0 as a serialized JSON.
