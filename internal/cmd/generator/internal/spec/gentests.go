@@ -557,6 +557,21 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 			fmt.Fprintf(sb, "\t}\n")
 		}
 	}
+	fmt.Fprint(sb, "\t// check for the path\n")
+	if d.URLPath.IsTemplate {
+		fmt.Fprintf(sb, "\ttmpl := template.Must(template.New(\"t\").Parse(\"%s\"))\n", d.URLPath.Value)
+		fmt.Fprint(sb, "\tvar tmplsb strings.Builder\n")
+		fmt.Fprint(sb, "\tif err := tmpl.Execute(&tmplsb, req); err != nil {\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(err)\n")
+		fmt.Fprint(sb, "\t}\n")
+		fmt.Fprint(sb, "\tif handler.url.Path != tmplsb.String() {\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(\"sent an invalid path\")\n")
+		fmt.Fprint(sb, "\t}\n")
+	} else {
+		fmt.Fprintf(sb, "\tif handler.url.Path != \"%s\" {\n", d.URLPath.Value)
+		fmt.Fprint(sb, "\t\tt.Fatal(\"sent an invalid path\")\n")
+		fmt.Fprint(sb, "\t}\n")
+	}
 	fmt.Fprint(sb, "}\n\n")
 }
 

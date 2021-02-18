@@ -22,6 +22,7 @@ func genTests(filep file) {
 	fprint(filep, "\t\"reflect\"\n")
 	fprint(filep, "\t\"strings\"\n")
 	fprint(filep, "\t\"sync\"\n")
+	fprint(filep, "\t\"text/template\"\n")
 	fprint(filep, "\t\"testing\"\n")
 	fprint(filep, "\t\"time\"\n")
 	fprint(filep, "\n")
