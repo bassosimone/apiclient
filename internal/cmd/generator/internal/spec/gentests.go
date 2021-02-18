@@ -367,13 +367,21 @@ func (d *Descriptor) genTestWithFailingAuthorizer(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
+// TODO(bassosimone): we should add a panic for every switch for
+// the type of a request or a response for robustness.
+
 func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	if d.Private {
 		return // we only test public APIs here
 	}
 	fmt.Fprintf(sb, "type handle%s struct{\n", d.Name)
 	if d.Method == "POST" {
-		fmt.Fprint(sb, "\tbody []byte\n")
+		switch d.requestTypeKind() {
+		case reflect.Struct:
+			fmt.Fprintf(sb, "\treq %s\n", d.requestTypeName())
+		default:
+			panic("not supporting this case")
+		}
 	}
 	fmt.Fprint(sb, "\tcount int32\n")
 	fmt.Fprint(sb, "\tmethod string\n")
@@ -392,12 +400,26 @@ func (d *Descriptor) genHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\th.method = r.Method\n")
 	fmt.Fprint(sb, "\th.url = r.URL\n")
 	if d.Method == "POST" {
-		fmt.Fprint(sb, "\tbody, err := ioutil.ReadAll(r.Body)\n")
+		fmt.Fprint(sb, "\treqbody, err := ioutil.ReadAll(r.Body)\n")
 		fmt.Fprint(sb, "\tif err != nil {\n")
 		fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
 		fmt.Fprint(sb, "\t\treturn\n")
 		fmt.Fprint(sb, "\t}\n")
-		fmt.Fprint(sb, "\th.body = body\n")
+		switch d.requestTypeKind() {
+		case reflect.Struct:
+			fmt.Fprintf(sb, "\tvar in %s\n", d.requestTypeNameAsStruct())
+		default:
+			panic("not supporting this case")
+		}
+		fmt.Fprint(sb, "\tif err := json.Unmarshal(reqbody, &in); err != nil {\n")
+		fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
+		fmt.Fprint(sb, "\t\treturn\n")
+		fmt.Fprint(sb, "\t}\n")
+		fmt.Fprint(sb, "\tif reflect.ValueOf(in).IsZero() {\n")
+		fmt.Fprint(sb, "\t\tw.WriteHeader(400)\n")
+		fmt.Fprint(sb, "\t\treturn\n")
+		fmt.Fprint(sb, "\t}\n")
+		fmt.Fprint(sb, "\th.req = &in\n")
 	}
 	switch d.responseTypeKind() {
 	case reflect.Struct:
@@ -453,6 +475,7 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tif err != nil {\n")
 	fmt.Fprintf(sb, "\t\tt.Fatal(err)\n")
 	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\t// check for data round trip\n")
 	fmt.Fprint(sb, "\tif resp == nil {\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(\"expected non-nil resp\")\n")
 	fmt.Fprint(sb, "\t}\n")
@@ -463,6 +486,11 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 		fmt.Fprint(sb, "\t}\n")
 	case reflect.Map:
 		// nothing
+	}
+	if d.Method == "POST" {
+		fmt.Fprint(sb, "\tif diff := cmp.Diff(req, handler.req); diff != \"\"{\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(diff)\n")
+		fmt.Fprint(sb, "\t}\n")
 	}
 	fmt.Fprint(sb, "\tif diff := cmp.Diff(resp, handler.resp); diff != \"\"{\n")
 	fmt.Fprint(sb, "\t\tt.Fatal(diff)\n")
