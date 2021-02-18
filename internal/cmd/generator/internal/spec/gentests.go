@@ -492,6 +492,7 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "\t}\n")
 	switch d.responseTypeKind() {
 	case reflect.Struct:
+		// See https://play.golang.org/p/d8DfDXTrwQ6
 		fmt.Fprint(sb, "\tif reflect.ValueOf(*resp).IsZero() {\n")
 		fmt.Fprint(sb, "\t\tt.Fatal(\"server returned a zero structure\")\n")
 		fmt.Fprint(sb, "\t}\n")
@@ -521,6 +522,41 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprintf(sb, "\tif handler.method != \"%s\" {\n", d.Method)
 	fmt.Fprint(sb, "\t\tt.Fatal(\"we sent an unexpected method\")\n")
 	fmt.Fprint(sb, "\t}\n")
+	if fields := d.getStructFieldsWithTag(d.Request, tagForQuery); len(fields) > 0 {
+		fmt.Fprint(sb, "\t// check for the query\n")
+		fmt.Fprint(sb, "\tquery, err := url.ParseQuery(handler.url.RawQuery)\n")
+		fmt.Fprint(sb, "\tif err != nil {\n")
+		fmt.Fprint(sb, "\t\tt.Fatal(err)\n")
+		fmt.Fprint(sb, "\t}\n")
+		for idx, field := range fields {
+			fmt.Fprintf(sb, "\tv%d := query.Get(\"%s\")\n", idx, field.Tag.Get(tagForQuery))
+			switch field.Type.Kind() {
+			case reflect.String:
+				// for a string query.Get() returns the empty string if it's empty
+				// therefore we can safely continue to process.
+				fmt.Fprintf(sb, "\tov%d := req.%s\n", idx, field.Name)
+			case reflect.Int64:
+				// for a number, we need to convert the missing value (empty string)
+				// to the serialization of zero (which we don't send).
+				fmt.Fprintf(sb, "\tif v%d == \"\" {\n", idx)
+				fmt.Fprintf(sb, "\t\tv%d = \"0\" // we don't send a zero value\n", idx)
+				fmt.Fprintf(sb, "\t}\n")
+				fmt.Fprintf(sb, "\tov%d := newQueryFieldInt64(req.%s)\n", idx, field.Name)
+			case reflect.Bool:
+				// for a bool, we need to convert the missing value (empty string)
+				// to the serialization of false (which we don't sent).
+				fmt.Fprintf(sb, "\tif v%d == \"\" {\n", idx)
+				fmt.Fprintf(sb, "\t\tv%d = \"false\" // we don't send a false value\n", idx)
+				fmt.Fprintf(sb, "\t}\n")
+				fmt.Fprintf(sb, "\tov%d := newQueryFieldBool(req.%s)\n", idx, field.Name)
+			default:
+				panic(fmt.Sprintf("invalid type at index %d", idx))
+			}
+			fmt.Fprintf(sb, "\tif ov%d != v%d {\n", idx, idx)
+			fmt.Fprintf(sb, "\t\tt.Fatal(\"query field with unexpected value\")\n")
+			fmt.Fprintf(sb, "\t}\n")
+		}
+	}
 	fmt.Fprint(sb, "}\n\n")
 }
 

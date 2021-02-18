@@ -14,6 +14,10 @@ func newQueryFieldInt64(v int64) string {
 	return fmt.Sprintf("%d", v)
 }
 
+func newQueryFieldBool(v bool) string {
+	return fmt.Sprintf("%v", v)
+}
+
 func newAuthorizationHeader(token string) string {
 	return fmt.Sprintf("Bearer %s", token)
 }
