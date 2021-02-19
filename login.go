@@ -46,37 +46,16 @@ func newLoginManager(kvstore KVStore) *loginManager {
 	return &loginManager{kvstore: kvstore, state: ls}
 }
 
-// This list contains the errors returned by login code.
+// This list contains the errors returned by login code. Users should not
+// see these errors until something's very wrong with the backend.
 var (
-	errLoginBackendChanged = errors.New("apiclient: login: backend changed")
-	errLoginNotRegistered  = errors.New("apiclient: login: not registered")
-	errLoginTokenEmpty     = errors.New("apiclient: login: token empty")
-	errLoginTokenExpired   = errors.New("apiclient: login: token expired")
+	errWantLogin    = errors.New("apiclient: we need to login")
+	errWantRegister = errors.New("apiclient: we need to register")
 )
 
-// token returns the loginState token, if valid, or an
-// error if the token has expired or is not valid.
-func (lm *loginManager) token() (string, error) {
-	if lm.state.Token == "" {
-		return "", errLoginTokenEmpty
-	}
-	if time.Now().Add(30 * time.Second).After(lm.state.Expire) {
-		return "", errLoginTokenExpired
-	}
-	return lm.state.Token, nil
-}
-
-// loginRequest returns a LoginRequest for the current loginState
-// or an error if we don't have enough information.
-func (lm *loginManager) loginRequest() (*imodel.LoginRequest, error) {
-	if lm.state.ClientID == "" || lm.state.Password == "" {
-		return nil, errLoginNotRegistered
-	}
-	return &imodel.LoginRequest{
-		ClientID: lm.state.ClientID,
-		Password: lm.state.Password,
-	}, nil
-}
+// TODO(bassosimone): it may be useful to hold a file-based mutex
+// during the register and login process to protect the kvstore. This
+// should probably be implemented into the kvstore itself.
 
 func (lm *loginManager) writeback() error {
 	data, err := json.Marshal(lm.state)
@@ -85,33 +64,6 @@ func (lm *loginManager) writeback() error {
 	}
 	return lm.kvstore.Set(loginKey, data)
 }
-
-// doLogin executes the login flow and returns the token or an error.
-func (c *Client) doLogin(ctx context.Context, lm *loginManager) (string, error) {
-	req, err := lm.loginRequest()
-	if err != nil {
-		return "", err
-	}
-	resp, err := newLoginAPI(c).call(ctx, req)
-	if err != nil {
-		if errors.Is(err, ErrHTTPFailure) {
-			// This happens if we get a 401 Unauthorized because for
-			// some reason the backend database has changed.
-			// TODO(bassosimone): need to check for 401 explicitly?
-			err = errLoginBackendChanged
-		}
-		return "", err
-	}
-	lm.state.Token, lm.state.Expire = resp.Token, resp.Expire
-	if err := lm.writeback(); err != nil {
-		return "", err
-	}
-	return lm.state.Token, nil
-}
-
-// TODO(bassosimone): it may be useful to hold a file-based mutex
-// during the register and login process to protect the kvstore. This
-// should probably be implemented into the kvstore itself.
 
 // newRandomPassword generates a new random password.
 func (c *Client) newRandomPassword() (string, error) {
@@ -149,49 +101,103 @@ func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
 	}, nil
 }
 
-// doRegister performs the registration.
-func (c *Client) doRegister(ctx context.Context, lm *loginManager) error {
+// loginAdapter adapts an API type to the login flow.
+type loginAdapter interface {
+	call(ctx context.Context, clnt *Client, token string) error
+}
+
+// doWithToken calls the specified API with the current token, if possible, and
+// returns the error that occurred, if any.
+func (c *Client) doWithToken(ctx context.Context, la loginAdapter) error {
+	lm := newLoginManager(c.kvstore())
+	if lm.state.Token == "" {
+		return errWantRegister // we never registered
+	}
+	if time.Now().Add(30 * time.Second).After(lm.state.Expire) {
+		return errWantLogin // token has expired
+	}
+	switch err := la.call(ctx, c, lm.state.Token); err {
+	case ErrUnauthorized:
+		return errWantRegister // something changed in the server DB?
+	case nil:
+		return nil // api call successful
+	default:
+		return err // any other unrecoverable error
+	}
+}
+
+// doLogin executes a login with the backend, if possible, and
+// returns the result of doing this operation.
+func (c *Client) doLogin(ctx context.Context) error {
+	lm := newLoginManager(c.kvstore())
+	if lm.state.ClientID == "" || lm.state.Password == "" {
+		return errWantRegister // we never registered
+	}
+	req := &imodel.LoginRequest{
+		ClientID: lm.state.ClientID, Password: lm.state.Password}
+	resp, err := newLoginAPI(c).call(ctx, req)
+	switch err {
+	case nil:
+		lm.state.Token, lm.state.Expire = resp.Token, resp.Expire
+		return lm.writeback() // this sounds like success
+	case ErrUnauthorized:
+		return errWantRegister // something changed in the server DB?
+	default:
+		return err // any other unrecoverable error
+	}
+}
+
+// doRegister registers a new account with the backend and
+// returns the result of attempting to do so.
+func (c *Client) doRegister(ctx context.Context) error {
 	req, err := c.newRegisterRequest()
 	if err != nil {
-		return err
+		return err // unrecoverable error
 	}
 	resp, err := newRegisterAPI(c).call(ctx, req)
 	if err != nil {
-		return err
+		return err // unrecoverable error
 	}
-	lm.state.ClientID, lm.state.Password = resp.ClientID, req.Password
+	lm := newLoginManager(c.kvstore())
+	// start afresh with the saved state
+	lm.state = loginState{
+		ClientID: resp.ClientID,
+		Password: req.Password,
+	}
 	return lm.writeback()
 }
 
-// doRegisterAndLogin executes the register and login flows.
-func (c *Client) doRegisterAndLogin(ctx context.Context, lm *loginManager) (string, error) {
-	if err := c.doRegister(ctx, lm); err != nil {
-		return "", err
+// doWithLoginAdapter attempts to call the logged-in API represented by the
+// loginAdapter using the current login state. Depending on what happens this
+// code may register a new account and call again the API.
+func (c *Client) doWithLoginAdapter(ctx context.Context, la loginAdapter) error {
+	switch err := c.doWithToken(ctx, la); err {
+	case errWantRegister:
+		if err := c.doRegister(ctx); err != nil {
+			return err // unrecoverable error
+		}
+		if err := c.doLogin(ctx); err != nil {
+			return err // unrecoverable error
+		}
+		return c.doWithToken(ctx, la) // token should be good
+	case errWantLogin:
+		switch err := c.doLogin(ctx); err {
+		case errWantRegister:
+			if err := c.doRegister(ctx); err != nil {
+				return err // unrecoverable error
+			}
+			if err := c.doLogin(ctx); err != nil {
+				return err // unrecoverable error
+			}
+			return c.doWithToken(ctx, la) // token should be good
+		case nil:
+			return c.doWithToken(ctx, la) // token should be good
+		default:
+			return err // unrecoverable error
+		}
+	case nil:
+		return nil // we're all good
+	default:
+		return err // unrecoverable error
 	}
-	return c.doLogin(ctx, lm)
-}
-
-// maybeRefreshToken implements authorizer.maybeRefreshToken.
-//
-// When invoked, this method will roughly do the following:
-//
-// 1. if we already have a valid token, just return it;
-//
-// 2. if we already have valid orchestra credentials, then
-// login again so to refresh the token, then return the token;
-//
-// 3. otherwise, create a new account, and then login with
-// such an account, so we have a token to return.
-//
-// This implementation should be robust to a change in
-// the backend database where all logins are lost.
-func (c *Client) maybeRefreshToken(ctx context.Context) (string, error) {
-	lm := newLoginManager(c.kvstore())
-	if token, err := lm.token(); err == nil {
-		return token, nil // we already have a good token to use
-	}
-	if token, err := c.doLogin(ctx, lm); err == nil {
-		return token, nil // we have relogged in
-	}
-	return c.doRegisterAndLogin(ctx, lm)
 }

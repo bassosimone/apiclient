@@ -45,6 +45,7 @@ var (
 	ErrHTTPFailure     = errors.New("apiclient: http request failed")
 	ErrJSONLiteralNull = errors.New("apiclient: server returned us a literal null")
 	ErrEmptyField      = errors.New("apiclient: empty field")
+	ErrUnauthorized    = errors.New("apiclient: not authorized")
 	errMissingToken    = errors.New("apiclient: missing authorization token")
 )
 
