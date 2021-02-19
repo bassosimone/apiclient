@@ -16,7 +16,7 @@ func (d *Descriptor) genNewRequestQueryElemString(sb *strings.Builder, f *reflec
 	query := f.Tag.Get(tagForQuery)
 	if f.Tag.Get(tagForRequired) == "true" {
 		fmt.Fprintf(sb, "\tif req.%s == \"\" {\n", name)
-		fmt.Fprintf(sb, "\t\treturn \"\", newErrEmptyField(\"%s\")\n", name)
+		fmt.Fprintf(sb, "\t\treturn nil, newErrEmptyField(\"%s\")\n", name)
 		fmt.Fprintf(sb, "\t}\n")
 		fmt.Fprintf(sb, "\tq.Add(\"%s\", req.%s)\n", query, name)
 		return
@@ -44,16 +44,14 @@ func (d *Descriptor) genNewRequestQueryElemInt64(sb *strings.Builder, f *reflect
 	fmt.Fprintf(sb, "\t}\n")
 }
 
-func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) bool {
+func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) {
 	if d.Method != "GET" {
-		return false // we only generate query for GET
+		return // we only generate query for GET
 	}
 	fields := d.getStructFieldsWithTag(d.Request, tagForQuery)
 	if len(fields) <= 0 {
-		return false
+		return
 	}
-	fmt.Fprintf(sb, "func (api *%s) newRequestQuery(req %s) (string, error) {\n",
-		d.apiStructName(), d.requestTypeName())
 	fmt.Fprint(sb, "\tq := url.Values{}\n")
 	for idx, f := range fields {
 		switch f.Type.Kind() {
@@ -67,9 +65,7 @@ func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) bool {
 			panic(fmt.Sprintf("unexpected query type at index %d", idx))
 		}
 	}
-	fmt.Fprint(sb, "\treturn q.Encode(), nil\n")
-	fmt.Fprintf(sb, "}\n\n")
-	return true
+	fmt.Fprint(sb, "\tURL.RawQuery = q.Encode()\n")
 }
 
 func (d *Descriptor) genNewRequestURLPath(sb *strings.Builder) {
@@ -129,7 +125,7 @@ func (d *Descriptor) genNewRequestCallNewRequest(sb *strings.Builder) {
 	fmt.Fprint(sb, "nil)\n")
 }
 
-func (d *Descriptor) genNewRequest(sb *strings.Builder, hasQuery bool) {
+func (d *Descriptor) genNewRequest(sb *strings.Builder) {
 
 	fmt.Fprintf(
 		sb, "func (api *%s) newRequest(ctx context.Context, req %s) %s {\n",
@@ -149,13 +145,7 @@ func (d *Descriptor) genNewRequest(sb *strings.Builder, hasQuery bool) {
 		fmt.Fprint(sb, "\t}\n")
 	}
 
-	if hasQuery {
-		fmt.Fprint(sb, "\tURL.RawQuery, err = api.newRequestQuery(req)\n")
-		fmt.Fprint(sb, "\tif err != nil {\n")
-		fmt.Fprint(sb, "\t\treturn nil, err\n")
-		fmt.Fprint(sb, "\t}\n")
-	}
-
+	d.genNewRequestQuery(sb)
 	d.genNewRequestCallNewRequest(sb)
 
 	fmt.Fprintf(sb, "}\n\n")
@@ -165,8 +155,7 @@ func (d *Descriptor) genNewRequest(sb *strings.Builder, hasQuery bool) {
 // given a specific API call.
 func (d *Descriptor) GenNewRequest() string {
 	var sb strings.Builder
-	hasQuery := d.genNewRequestQuery(&sb)
 	d.genNewRequestURLPath(&sb)
-	d.genNewRequest(&sb, hasQuery)
+	d.genNewRequest(&sb)
 	return sb.String()
 }
