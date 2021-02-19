@@ -118,7 +118,7 @@ func (c *Client) doWithToken(ctx context.Context, la loginAdapter) error {
 	}
 	switch err := la.call(ctx, c, lm.state.Token); err {
 	case ErrUnauthorized:
-		return errWantRegister // something changed in the server DB?
+		return errWantLogin // let us try with a relogin first
 	case nil:
 		return nil // api call successful
 	default:
