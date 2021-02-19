@@ -125,7 +125,7 @@ func (c *cacheClient) cachedResponse(ckey *cacheRecordKey, httpErr error) (*http
 	return nil, httpErr // return the original error
 }
 
-const maxCacheIndex = 128
+const maxCacheIndex = 512
 
 func (c *cacheClient) addToCache(ckey *cacheRecordKey, body string) error {
 	orig := c.readCache()
