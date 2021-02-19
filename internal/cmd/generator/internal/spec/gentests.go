@@ -569,6 +569,29 @@ func (d *Descriptor) genTestClientWithHandlerForPublicAPI(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
+func (d *Descriptor) genTestClientDoWithLoginAdapterFailureForAuthAPI(sb *strings.Builder) {
+	if !d.RequiresLogin {
+		return // we only test public APIs here
+	}
+	fmt.Fprintf(sb, "func TestClientDoWithLoginAdapterFailureFor%s(t *testing.T) {\n", d.Name)
+	d.genTestNewRequest(sb)
+	fmt.Fprint(sb, "\tclnt := &Client{\n")
+	fmt.Fprint(sb, "\t\tBaseURL: \"https://ps1.ooni.io\",\n")
+	fmt.Fprint(sb, "\t\tHTTPClient: &mockableHTTPClient{\n")
+	fmt.Fprint(sb, "\t\t\tResp: &http.Response{StatusCode: 400},\n")
+	fmt.Fprint(sb, "\t\t},\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tctx := context.Background()\n")
+	fmt.Fprintf(sb, "\tresp, err := clnt.%s(ctx, req)\n", d.Name)
+	fmt.Fprint(sb, "\tif !errors.Is(err, ErrHTTPFailure) {\n")
+	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif resp != nil {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "}\n\n")
+}
+
 // GenTests generates tests for generated code.
 func (d *Descriptor) GenTests() string {
 	var sb strings.Builder
@@ -588,5 +611,6 @@ func (d *Descriptor) GenTests() string {
 	d.genTestTemplateExecuteErr(&sb)
 	d.genHandlerForPublicAPI(&sb)
 	d.genTestClientWithHandlerForPublicAPI(&sb)
+	d.genTestClientDoWithLoginAdapterFailureForAuthAPI(&sb)
 	return sb.String()
 }
