@@ -117,6 +117,28 @@ func (d *Descriptor) genTestWithNewRequestErr(sb *strings.Builder) {
 	fmt.Fprint(sb, "}\n\n")
 }
 
+func (d *Descriptor) genTestWith401(sb *strings.Builder) {
+	fmt.Fprintf(sb, "func Test%sWith401(t *testing.T) {\n", d.Name)
+	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{StatusCode: 401}}\n")
+	fmt.Fprintf(sb, "\tapi := &%s{\n", d.apiStructName())
+	fmt.Fprint(sb, "\t\tBaseURL:    \"https://ps1.ooni.io\",\n")
+	fmt.Fprint(sb, "\t\tHTTPClient: clnt,\n")
+	if d.RequiresLogin == true {
+		fmt.Fprint(sb, "\t\tToken:      \"fakeToken\",\n")
+	}
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tctx := context.Background()\n")
+	d.genTestNewRequest(sb)
+	fmt.Fprint(sb, "\tresp, err := api.call(ctx, req)\n")
+	fmt.Fprint(sb, "\tif !errors.Is(err, ErrUnauthorized) {\n")
+	fmt.Fprintf(sb, "\t\tt.Fatal(\"not the error we expected\", err)\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "\tif resp != nil {\n")
+	fmt.Fprint(sb, "\t\tt.Fatal(\"expected nil resp\")\n")
+	fmt.Fprint(sb, "\t}\n")
+	fmt.Fprint(sb, "}\n\n")
+}
+
 func (d *Descriptor) genTestWith400(sb *strings.Builder) {
 	fmt.Fprintf(sb, "func Test%sWith400(t *testing.T) {\n", d.Name)
 	fmt.Fprint(sb, "\tclnt := &mockableHTTPClient{Resp: &http.Response{StatusCode: 400}}\n")
@@ -555,6 +577,7 @@ func (d *Descriptor) GenTests() string {
 	d.genTestWithHTTPErr(&sb)
 	d.genTestMarshalErr(&sb)
 	d.genTestWithNewRequestErr(&sb)
+	d.genTestWith401(&sb)
 	d.genTestWith400(&sb)
 	d.genTestWithResponseBodyReadErr(&sb)
 	d.genTestWithUnmarshalFailure(&sb)
