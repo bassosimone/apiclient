@@ -37,16 +37,11 @@ func (d *Descriptor) GenNewResponse() string {
 		fmt.Fprintf(&sb, "\tout := &%s{}\n", d.responseTypeNameAsStruct())
 	}
 
-	fmt.Fprint(&sb, "\tunmarshal := json.Unmarshal\n")
-	fmt.Fprint(&sb, "\tif api.unmarshal != nil {\n")
-	fmt.Fprint(&sb, "\t\tunmarshal = api.unmarshal\n")
-	fmt.Fprint(&sb, "\t}\n")
-
 	switch d.responseTypeKind() {
 	case reflect.Map:
-		fmt.Fprint(&sb, "\tif err := unmarshal(data, &out); err != nil {\n")
+		fmt.Fprint(&sb, "\tif err := api.jsonCodec.Decode(data, &out); err != nil {\n")
 	case reflect.Struct:
-		fmt.Fprint(&sb, "\tif err := unmarshal(data, out); err != nil {\n")
+		fmt.Fprint(&sb, "\tif err := api.jsonCodec.Decode(data, out); err != nil {\n")
 	}
 
 	fmt.Fprint(&sb, "\t\treturn nil, err\n")

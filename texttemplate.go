@@ -1,27 +1,20 @@
 package apiclient
 
 import (
-	"io"
+	"strings"
 	"text/template"
 )
 
-type textTemplate interface {
-	Parse(text string) (textTemplate, error)
-	Execute(wr io.Writer, data interface{}) error
-}
+type stdlibTemplateExecutor struct{}
 
-type stdlibTextTemplate struct {
-	*template.Template
-}
-
-func (t *stdlibTextTemplate) Parse(text string) (textTemplate, error) {
-	out, err := t.Template.Parse(text)
+func (*stdlibTemplateExecutor) Execute(tmpl string, v interface{}) (string, error) {
+	to, err := template.New("t").Parse(tmpl)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &stdlibTextTemplate{out}, nil
-}
-
-func newStdlibTextTemplate(name string) textTemplate {
-	return &stdlibTextTemplate{template.New(name)}
+	var sb strings.Builder
+	if err := to.Execute(&sb, v); err != nil {
+		return "", err
+	}
+	return sb.String(), nil
 }

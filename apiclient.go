@@ -2,8 +2,10 @@
 //
 // Usage
 //
-// Create a Client instance. Even though the zero Client works, you most
-// likely want to fill in all its fields to customize its behavior.
+// Create a new Config instance. The zero Config instance represents a
+// valid configuration. You may still want to change the defaults.
+//
+// Call New to obtain a Client instance.
 //
 // To call the API, create and fill a request structure. Pass this structure
 // along with a valid context to the proper Client method.
@@ -35,7 +37,9 @@
 package apiclient
 
 import (
+	"context"
 	"errors"
+	"io"
 	"net/http"
 )
 
@@ -57,7 +61,7 @@ func Swagger() string {
 // HTTPClient is the interface of a generic HTTP client. We use this
 // interface to abstract the HTTP client on which Client depends.
 type HTTPClient interface {
-	// Do should work exactly like http.DefaultClient.Do.
+	// Do should work like http.Client.Do.
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -71,39 +75,130 @@ type KVStore interface {
 	Set(key string, value []byte) error
 }
 
-// Client is a client for the OONI API. The client does not keep
-// any on memory state, so it's cheap to create and destroy.
-type Client struct {
-	// BaseURL is the base URL for the OONI API. If not set, we will
-	// use the default API-base-URL.
+// JSONCodec is a JSON encoder and decoder.
+type JSONCodec interface {
+	// Encode encodes v as a serialized JSON byte slice.
+	Encode(v interface{}) ([]byte, error)
+
+	// Decode decodes the serialized JSON byte slice into v.
+	Decode(b []byte, v interface{}) error
+}
+
+// RequestMaker makes an HTTP request.
+type RequestMaker interface {
+	// NewRequest creates a new HTTP request.
+	NewRequest(ctx context.Context, method, URL string, body io.Reader) (*http.Request, error)
+}
+
+// GobCodec is a codec for Go's gob format.
+type GobCodec interface {
+	// Encode encodes v as a serialized gob byte slice.
+	Encode(v interface{}) ([]byte, error)
+
+	// Decode decodes the serialized gob byte slice into v.
+	Decode(b []byte, v interface{}) error
+}
+
+// TemplateExecutor executes a text template.
+type TemplateExecutor interface {
+	// Execute takes in input a template string and some piece of data. It
+	// returns either a string where template parameters have been replaced,
+	// on success, or an error, on failure.
+	Execute(tmpl string, v interface{}) (string, error)
+}
+
+// Config contains configuration for creating a client.
+type Config struct {
+	// BaseURL is the base URL to use. If not set we will
+	// configure the Client to use a default URL.
 	BaseURL string
 
-	// HTTPClient is the HTTP client to use. If not set, we will
-	// use the http.DefaultClient client.
+	// GobCodec is the gob codec to use. If not set we will
+	// configure Client to use the stdlib's codec.
+	GobCodec GobCodec
+
+	// HTTPClient is the HTTP client to use. If not set we will
+	// configure the Client to use a default HTTP client.
 	HTTPClient HTTPClient
 
+	// JSONCodec is the JSON codec to use. If not set we will
+	// use the Go standard library's JSON codec.
+	JSONCodec JSONCodec
+
 	// KVStore is the key-value store to use. If not set, we will
-	// configure a memory-based, ephemeral key-value store.
+	// configure the Client to use a memory based KVStore.
 	KVStore KVStore
 
-	// UserAgent is the user agent for the OONI API. If not set, we
-	// will send no User Agent to the server.
+	// RequestMaker is the HTTP request maker to use. If not set, we will
+	// configure the Client to use the standard library's maker.
+	RequestMaker RequestMaker
+
+	// TemplateExecutor is the text template executor to use. If not set, we
+	// will use the standard library to perform this task.
+	TemplateExecutor TemplateExecutor
+
+	// UserAgent is the user agent to use. If not set, we will
+	// configure the Client to use a default user agent.
 	UserAgent string
 }
 
-// httpClient returns the configured client or the default.
-func (c *Client) httpClient() HTTPClient {
-	if c.HTTPClient != nil {
-		return c.HTTPClient
-	}
-	return http.DefaultClient
+// Client is a client for the OONI API. The client does not keep
+// any on memory state, so it's cheap to create and destroy.
+// You must create a new client using the New factory function.
+type Client struct {
+	baseURL          string
+	gobCodec         GobCodec
+	httpClient       HTTPClient
+	jsonCodec        JSONCodec
+	kvStore          KVStore
+	requestMaker     RequestMaker
+	templateExecutor TemplateExecutor
+	userAgent        string
 }
 
 const defaultBaseURL = "https://ps1.ooni.io"
 
-func (c *Client) baseURL() string {
-	if c.BaseURL != "" {
-		return c.BaseURL
+// New creates a new instance of Client. You must use this
+// function to create a new valid instance.
+func New(config *Config) *Client {
+	baseURL := config.BaseURL
+	if baseURL == "" {
+		baseURL = defaultBaseURL
 	}
-	return defaultBaseURL
+	gobCodec := config.GobCodec
+	if gobCodec == nil {
+		gobCodec = &stdlibGobCodec{}
+	}
+	httpClient := config.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	jsonCodec := config.JSONCodec
+	if jsonCodec == nil {
+		jsonCodec = &stdlibJSONCodec{}
+	}
+	kvStore := config.KVStore
+	if kvStore == nil {
+		kvStore = &memkvstore{}
+	}
+	requestMaker := config.RequestMaker
+	if requestMaker == nil {
+		requestMaker = &stdlibRequestMaker{}
+	}
+	templateExecutor := config.TemplateExecutor
+	if templateExecutor == nil {
+		templateExecutor = &stdlibTemplateExecutor{}
+	}
+	// TODO(bassosimone): make sure this leads to the empty
+	// user agent and otherwise change the docs.
+	userAgent := config.UserAgent
+	return &Client{
+		baseURL:      baseURL,
+		gobCodec:     gobCodec,
+		httpClient:   httpClient,
+		jsonCodec:    jsonCodec,
+		kvStore:      kvStore,
+		requestMaker: requestMaker,
+		userAgent:    userAgent,
+	}
 }

@@ -68,48 +68,13 @@ func (d *Descriptor) genNewRequestQuery(sb *strings.Builder) {
 	fmt.Fprint(sb, "\tURL.RawQuery = q.Encode()\n")
 }
 
-func (d *Descriptor) genNewRequestURLPath(sb *strings.Builder) {
-	if !d.URLPath.IsTemplate {
-		return // only when we have a template
-	}
-	fmt.Fprintf(
-		sb, "func (api *%s) newRequestURLPath(req %s) (string, error) {\n",
-		d.apiStructName(), d.requestTypeName())
-	fmt.Fprintf(sb, "\tnewTemplate := newStdlibTextTemplate\n")
-	fmt.Fprintf(sb, "\tif api.newTemplate != nil {\n")
-	fmt.Fprintf(sb, "\t\tnewTemplate = api.newTemplate\n")
-	fmt.Fprintf(sb, "\t}\n")
-	fmt.Fprintf(sb, "\ttmpl, err := newTemplate(\"urlpath\").Parse(\"%s\")\n", d.URLPath.Value)
-	fmt.Fprint(sb, "\tif err != nil {\n")
-	fmt.Fprint(sb, "\t\treturn \"\", err\n")
-	fmt.Fprint(sb, "\t}\n")
-	fmt.Fprint(sb, "\tvar urlpath strings.Builder\n")
-	fmt.Fprint(sb, "\terr = tmpl.Execute(&urlpath, req)\n")
-	fmt.Fprint(sb, "\tif err != nil {\n")
-	fmt.Fprint(sb, "\t\treturn \"\", err\n")
-	fmt.Fprint(sb, "\t}\n")
-	fmt.Fprint(sb, "\treturn urlpath.String(), nil\n")
-	fmt.Fprintf(sb, "}\n\n")
-}
-
 func (d *Descriptor) genNewRequestCallNewRequest(sb *strings.Builder) {
-	emit := func() { // common code for setting up newRequest function ptr
-		fmt.Fprint(sb, "\tnewRequest := http.NewRequestWithContext\n")
-		fmt.Fprint(sb, "\tif api.NewRequest != nil {\n")
-		fmt.Fprint(sb, "\t\tnewRequest = api.NewRequest\n")
-		fmt.Fprint(sb, "\t}\n")
-	}
 	if d.Method == "POST" {
-		fmt.Fprint(sb, "\tmarshal := json.Marshal\n")
-		fmt.Fprint(sb, "\tif api.marshal != nil {\n")
-		fmt.Fprint(sb, "\t\tmarshal = api.marshal\n")
-		fmt.Fprint(sb, "\t}\n")
-		fmt.Fprint(sb, "\tbody, err := marshal(req)\n")
+		fmt.Fprint(sb, "\tbody, err := api.jsonCodec.Encode(req)\n")
 		fmt.Fprint(sb, "\tif err != nil {\n")
 		fmt.Fprint(sb, "\t\treturn nil, err\n")
 		fmt.Fprint(sb, "\t}\n")
-		emit()
-		fmt.Fprint(sb, "\tout, err := newRequest(")
+		fmt.Fprint(sb, "\tout, err := api.requestMaker.NewRequest(")
 		fmt.Fprintf(sb, "ctx, \"%s\", URL.String(), ", d.Method)
 		fmt.Fprint(sb, "bytes.NewReader(body))\n")
 		fmt.Fprint(sb, "\tif err != nil {\n")
@@ -119,8 +84,7 @@ func (d *Descriptor) genNewRequestCallNewRequest(sb *strings.Builder) {
 		fmt.Fprint(sb, "\treturn out, nil\n")
 		return
 	}
-	emit()
-	fmt.Fprint(sb, "\treturn newRequest(")
+	fmt.Fprint(sb, "\treturn api.requestMaker.NewRequest(")
 	fmt.Fprintf(sb, "ctx, \"%s\", URL.String(), ", d.Method)
 	fmt.Fprint(sb, "nil)\n")
 }
@@ -130,7 +94,7 @@ func (d *Descriptor) genNewRequest(sb *strings.Builder) {
 	fmt.Fprintf(
 		sb, "func (api *%s) newRequest(ctx context.Context, req %s) %s {\n",
 		d.apiStructName(), d.requestTypeName(), "(*http.Request, error)")
-	fmt.Fprint(sb, "\tURL, err := url.Parse(api.BaseURL)\n")
+	fmt.Fprint(sb, "\tURL, err := url.Parse(api.baseURL)\n")
 	fmt.Fprint(sb, "\tif err != nil {\n")
 	fmt.Fprint(sb, "\t\treturn nil, err\n")
 	fmt.Fprint(sb, "\t}\n")
@@ -139,10 +103,12 @@ func (d *Descriptor) genNewRequest(sb *strings.Builder) {
 	case false:
 		fmt.Fprintf(sb, "\tURL.Path = \"%s\"\n", d.URLPath.Value)
 	case true:
-		fmt.Fprint(sb, "\tURL.Path, err = api.newRequestURLPath(req)\n")
+		fmt.Fprintf(
+			sb, "\tup, err := api.templateExecutor.Execute(\"%s\", req)\n", d.URLPath.Value)
 		fmt.Fprint(sb, "\tif err != nil {\n")
 		fmt.Fprint(sb, "\t\treturn nil, err\n")
 		fmt.Fprint(sb, "\t}\n")
+		fmt.Fprint(sb, "\tURL.Path = up\n")
 	}
 
 	d.genNewRequestQuery(sb)
@@ -155,7 +121,6 @@ func (d *Descriptor) genNewRequest(sb *strings.Builder) {
 // given a specific API call.
 func (d *Descriptor) GenNewRequest() string {
 	var sb strings.Builder
-	d.genNewRequestURLPath(&sb)
 	d.genNewRequest(&sb)
 	return sb.String()
 }

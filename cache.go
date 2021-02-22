@@ -2,21 +2,11 @@ package apiclient
 
 import (
 	"bytes"
-	"encoding/gob"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strings"
 )
-
-type decoder interface {
-	Decode(e interface{}) error
-}
-
-type encoder interface {
-	Encode(e interface{}) error
-}
 
 // cacheClient is an HTTPClient that caches responses
 // on disk (or memory) using a KVStore. Note that this
@@ -24,10 +14,9 @@ type encoder interface {
 // read the bodies of http.Responses. These bodies will
 // be replaced by suitable bytes.Readers.
 type cacheClient struct {
-	HTTPClient
-	KVStore
-	newDecoder func(r io.Reader) decoder
-	newEncoder func(w io.Writer) encoder
+	GobCodec   GobCodec
+	HTTPClient HTTPClient
+	KVStore    KVStore
 }
 
 // cacheRecordKey is the key of a cacheRecord.
@@ -151,30 +140,16 @@ func (c *cacheClient) readCache() cacheList {
 		return cacheList{}
 	}
 	var cl cacheList
-	if err := c.makeNewDecoder(bytes.NewReader(data)).Decode(&cl); err != nil {
+	if err := c.GobCodec.Decode(data, &cl); err != nil {
 		return cacheList{}
 	}
 	return cl
 }
 
-func (c *cacheClient) makeNewDecoder(r io.Reader) decoder {
-	if c.newDecoder != nil {
-		return c.newDecoder(r)
-	}
-	return gob.NewDecoder(r)
-}
-
 func (c *cacheClient) writeCache(cl cacheList) error {
-	var bw bytes.Buffer
-	if err := c.makeNewEncoder(&bw).Encode(cl); err != nil {
+	data, err := c.GobCodec.Encode(cl)
+	if err != nil {
 		return err
 	}
-	return c.KVStore.Set(cacheKey, bw.Bytes())
-}
-
-func (c *cacheClient) makeNewEncoder(w io.Writer) encoder {
-	if c.newEncoder != nil {
-		return c.newEncoder(w)
-	}
-	return gob.NewEncoder(w)
+	return c.KVStore.Set(cacheKey, data)
 }

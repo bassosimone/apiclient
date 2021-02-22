@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -22,8 +21,9 @@ type loginState struct {
 }
 
 type loginManager struct {
-	kvstore KVStore
-	state   loginState
+	jsonCodec JSONCodec
+	kvstore   KVStore
+	state     loginState
 }
 
 // loginKey is the key with which loginState is saved
@@ -35,16 +35,17 @@ const loginKey = "orchestra.state"
 // in the kvstore, or the content is corrupt, then we return an
 // empty loginState data structure.
 func (c *Client) newLoginManager() *loginManager {
-	kvstore := c.kvstore()
-	data, err := kvstore.Get(loginKey)
+	out := &loginManager{jsonCodec: c.jsonCodec, kvstore: c.kvStore}
+	data, err := c.kvStore.Get(loginKey)
 	if err != nil {
-		return &loginManager{kvstore: kvstore}
+		return out
 	}
 	var ls loginState
-	if err := json.Unmarshal(data, &ls); err != nil {
-		return &loginManager{kvstore: kvstore}
+	if err := c.jsonCodec.Decode(data, &ls); err != nil {
+		return out
 	}
-	return &loginManager{kvstore: kvstore, state: ls}
+	out.state = ls
+	return out
 }
 
 // This list contains the errors returned by login code. Users should not
@@ -59,7 +60,7 @@ var (
 // should probably be implemented into the kvstore itself.
 
 func (lm *loginManager) writeback() error {
-	data, err := json.Marshal(lm.state)
+	data, err := lm.jsonCodec.Encode(lm.state)
 	if err != nil {
 		panic("json.Marshal should not fail here")
 	}

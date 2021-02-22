@@ -32,18 +32,3 @@ func (kvs *memkvstore) Set(key string, value []byte) error {
 	kvs.m[key] = value
 	return nil
 }
-
-var defaultKVStore KVStore = &memkvstore{}
-
-// kvstore returns the configured KVStore or a default
-// memory-based KVStore instance that is shared by
-// all the instances of the process. Using this kind
-// of kvstore is a good approximation of a kvstore
-// that is permanently available on the disk.
-func (c *Client) kvstore() KVStore {
-	kvstore := defaultKVStore
-	if c.KVStore != nil {
-		kvstore = c.KVStore
-	}
-	return kvstore
-}
