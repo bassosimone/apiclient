@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -360,5 +361,15 @@ func TestLoginWithDroppedDB(t *testing.T) {
 	}}
 	if diff := cmp.Diff(expect, handler.recs); diff != "" {
 		t.Fatal(diff)
+	}
+}
+
+func TestNewLoginManagerJSONUnmarshalFailure(t *testing.T) {
+	kvstore := &memkvstore{}
+	kvstore.Set(loginKey, []byte("{"))
+	c := &Client{KVStore: kvstore}
+	lm := c.newLoginManager()
+	if !reflect.ValueOf(lm.state).IsZero() {
+		t.Fatal("expected zero value")
 	}
 }

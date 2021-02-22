@@ -34,7 +34,8 @@ const loginKey = "orchestra.state"
 // that may contain content from the kvstore. If there's no content
 // in the kvstore, or the content is corrupt, then we return an
 // empty loginState data structure.
-func newLoginManager(kvstore KVStore) *loginManager {
+func (c *Client) newLoginManager() *loginManager {
+	kvstore := c.kvstore()
 	data, err := kvstore.Get(loginKey)
 	if err != nil {
 		return &loginManager{kvstore: kvstore}
@@ -60,27 +61,23 @@ var (
 func (lm *loginManager) writeback() error {
 	data, err := json.Marshal(lm.state)
 	if err != nil {
-		return err
+		panic("json.Marshal should not fail here")
 	}
 	return lm.kvstore.Set(loginKey, data)
 }
 
 // newRandomPassword generates a new random password.
-func (c *Client) newRandomPassword() (string, error) {
+func (c *Client) newRandomPassword() string {
 	const siz = 48
 	b := make([]byte, siz)
 	if _, err := rand.Read(b); err != nil {
-		return "", err
+		panic("rand.Read should not fail here")
 	}
-	return base64.StdEncoding.EncodeToString(b), nil
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 // newRegisterRequest creates a new RegisterRequest.
 func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
-	password, err := c.newRandomPassword()
-	if err != nil {
-		return nil, err
-	}
 	return &imodel.RegisterRequest{
 		Metadata: imodel.RegisterRequestMetadata{
 			// The original implementation has as its only use case that we
@@ -97,7 +94,7 @@ func (c *Client) newRegisterRequest() (*imodel.RegisterRequest, error) {
 			SoftwareVersion: "0.1.0-dev",
 			SupportedTests:  []string{"web_connectivity"},
 		},
-		Password: password,
+		Password: c.newRandomPassword(),
 	}, nil
 }
 
@@ -109,7 +106,7 @@ type loginAdapter interface {
 // doWithToken calls the specified API with the current token, if possible, and
 // returns the error that occurred, if any.
 func (c *Client) doWithToken(ctx context.Context, la loginAdapter) error {
-	lm := newLoginManager(c.kvstore())
+	lm := c.newLoginManager()
 	if lm.state.Token == "" {
 		return errWantRegister // we never registered
 	}
@@ -129,7 +126,7 @@ func (c *Client) doWithToken(ctx context.Context, la loginAdapter) error {
 // doLogin executes a login with the backend, if possible, and
 // returns the result of doing this operation.
 func (c *Client) doLogin(ctx context.Context) error {
-	lm := newLoginManager(c.kvstore())
+	lm := c.newLoginManager()
 	if lm.state.ClientID == "" || lm.state.Password == "" {
 		return errWantRegister // we never registered
 	}
@@ -158,7 +155,7 @@ func (c *Client) doRegister(ctx context.Context) error {
 	if err != nil {
 		return err // unrecoverable error
 	}
-	lm := newLoginManager(c.kvstore())
+	lm := c.newLoginManager()
 	// start afresh with the saved state
 	lm.state = loginState{
 		ClientID: resp.ClientID,
