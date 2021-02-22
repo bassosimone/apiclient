@@ -61,6 +61,16 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// KVStore is a key-value store. The Client uses a KVStore to
+// persist on disk authentication information.
+type KVStore interface {
+	// Get returns the value for the specified key.
+	Get(key string) ([]byte, error)
+
+	// Set sets the value for the specified key.
+	Set(key string, value []byte) error
+}
+
 // Client is a client for the OONI API. The client does not keep
 // any on memory state, so it's cheap to create and destroy.
 type Client struct {
@@ -87,4 +97,13 @@ func (c *Client) httpClient() HTTPClient {
 		return c.HTTPClient
 	}
 	return http.DefaultClient
+}
+
+const defaultBaseURL = "https://ps1.ooni.io"
+
+func (c *Client) baseURL() string {
+	if c.BaseURL != "" {
+		return c.BaseURL
+	}
+	return defaultBaseURL
 }

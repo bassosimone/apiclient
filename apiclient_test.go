@@ -34,3 +34,10 @@ func TestClientCustomHTTPClient(t *testing.T) {
 		t.Fatal("not the custom http client")
 	}
 }
+
+func TestBaseURLWorksAsIntended(t *testing.T) {
+	clnt := &Client{}
+	if clnt.baseURL() != defaultBaseURL {
+		t.Fatal("unexpected default baseURL")
+	}
+}

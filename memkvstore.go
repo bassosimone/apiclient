@@ -6,16 +6,6 @@ import (
 	"sync"
 )
 
-// KVStore is a key-value store. The Client uses a KVStore to
-// persist on disk authentication information.
-type KVStore interface {
-	// Get returns the value for the specified key.
-	Get(key string) ([]byte, error)
-
-	// Set sets the value for the specified key.
-	Set(key string, value []byte) error
-}
-
 var errMemkvstoreNotFound = errors.New("apiclient: memkvstore: not found")
 
 type memkvstore struct {
